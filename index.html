@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unica – Versicherung, Vorsorge, Veranlagung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --blue:#0B5CD6; --blue-dark:#083F95; --blue-soft:#E9F1FC;
+    --ink:#16181D; --grey:#5C616B; --line:#E7E8EC; --bg-soft:#F5F7FA; --white:#fff;
+    --maxw:1200px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+  body{font-family:'Source Sans 3',-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:var(--ink);background:#fff;line-height:1.55;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  svg{display:block}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px;width:100%}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:16px;padding:13px 24px;border-radius:8px;border:2px solid transparent;cursor:pointer;line-height:1;transition:.18s}
+  .btn-primary{background:var(--blue);color:#fff}
+  .btn-primary:hover{background:var(--blue-dark)}
+  .btn-ghost{background:#fff;color:var(--blue);border-color:var(--blue)}
+  .btn-ghost:hover{background:var(--blue-soft)}
+  :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+
+  /* utility bar */
+  .util{background:var(--bg-soft);border-bottom:1px solid var(--line);font-size:13.5px}
+  .util .wrap{display:flex;justify-content:flex-end;align-items:center;gap:22px;height:40px}
+  .util a{color:var(--grey)} .util a:hover{color:var(--blue)}
+  .util .sep{width:1px;height:16px;background:var(--line)}
+
+  /* header */
+  header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:76px;gap:18px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:900;font-size:28px;letter-spacing:-.5px;color:var(--ink)}
+  .logo .dot{width:13px;height:13px;border-radius:50%;background:var(--blue)}
+  .logo b{color:var(--blue)}
+  nav.main{display:flex;align-items:center;gap:26px}
+  nav.main a{font-weight:600;font-size:15.5px;padding:6px 0;border-bottom:3px solid transparent}
+  nav.main a:hover{color:var(--blue);border-bottom-color:var(--blue)}
+  .nav-cta{display:flex;align-items:center;gap:13px}
+  .phone{font-weight:700;color:var(--blue);white-space:nowrap;font-size:15px}
+  .burger{display:none;background:none;border:0;cursor:pointer;padding:6px}
+  .mobile-menu{display:none;flex-direction:column;background:#fff;border-bottom:1px solid var(--line)}
+  .mobile-menu.open{display:flex}
+  .mobile-menu a{padding:14px 22px;font-weight:600;border-top:1px solid var(--line)}
+  .mobile-menu a:hover{color:var(--blue);background:var(--bg-soft)}
+
+  /* hero */
+  .hero{background:linear-gradient(120deg,#0B5CD6 0%,#083F95 100%);color:#fff;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-120px;bottom:-160px;width:520px;height:520px;border-radius:50%;background:rgba(255,255,255,.07)}
+  .hero .wrap{position:relative;z-index:2;display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center;padding:72px 22px 86px}
+  .hero h1{font-size:clamp(33px,4.6vw,52px);line-height:1.06;font-weight:900;letter-spacing:-1px}
+  .hero p.lede{font-size:clamp(17px,1.7vw,20px);margin-top:20px;max-width:520px;opacity:.95}
+  .hero-actions{display:flex;flex-wrap:wrap;gap:13px;margin-top:30px}
+  .hero .btn-ghost{background:transparent;color:#fff;border-color:#fff}
+  .hero .btn-ghost:hover{background:rgba(255,255,255,.12)}
+  .quote-card{background:#fff;color:var(--ink);border-radius:16px;padding:26px;box-shadow:0 24px 60px rgba(8,24,60,.28)}
+  .quote-card h3{font-size:19px;font-weight:800}
+  .quote-card p{color:var(--grey);font-size:14.5px;margin-top:4px}
+  .qrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+  .qtile{border:1px solid var(--line);border-radius:10px;padding:14px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;font-weight:600;font-size:14px;text-align:center;transition:.15s}
+  .qtile:hover{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
+  .qtile svg{color:var(--blue)}
+
+  /* section scaffold */
+  section.block{padding:72px 0}
+  .sec-head{max-width:680px;margin:0 auto 44px;text-align:center}
+  .kicker{color:var(--blue);font-weight:700;letter-spacing:1.5px;text-transform:uppercase;font-size:12.5px}
+  .sec-head h2{font-size:clamp(26px,3.2vw,38px);font-weight:900;margin-top:10px;letter-spacing:-.5px}
+  .sec-head p{color:var(--grey);font-size:17.5px;margin-top:12px}
+
+  /* products */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:26px 22px;transition:.2s}
+  .card:hover{box-shadow:0 14px 34px rgba(22,24,29,.08);transform:translateY(-4px);border-color:#fff}
+  .card .ico{width:46px;height:46px;border-radius:11px;background:var(--blue-soft);color:var(--blue);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .card h3{font-size:19px;font-weight:700}
+  .card p{color:var(--grey);margin-top:6px;font-size:14.5px}
+  .card .more{display:inline-block;margin-top:13px;color:var(--blue);font-weight:600;font-size:14.5px}
+  .card .more::after{content:" ›";font-size:18px}
+
+  /* consult band */
+  .consult{background:var(--blue-soft)}
+  .consult .wrap{display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap;padding:46px 22px}
+  .consult h2{font-size:27px;font-weight:900}
+  .consult p{color:var(--grey);font-size:17px;margin-top:6px;max-width:560px}
+
+  /* magazine */
+  .mag-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .mag{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;transition:.2s}
+  .mag:hover{box-shadow:0 14px 34px rgba(22,24,29,.08);transform:translateY(-4px)}
+  .mag .ph{height:148px;background:linear-gradient(135deg,#1f6fe0,#083F95)}
+  .mag .ph.b{background:linear-gradient(135deg,#3a86ff,#0B5CD6)}
+  .mag .ph.c{background:linear-gradient(135deg,#5B9BFF,#1f6fe0)}
+  .mag .body{padding:20px 20px 24px}
+  .mag .tag{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--blue)}
+  .mag h3{font-size:18px;font-weight:700;margin-top:8px;line-height:1.3}
+  .mag p{color:var(--grey);font-size:14.5px;margin-top:8px}
+  .mag .more{display:inline-block;margin-top:12px;color:var(--blue);font-weight:600;font-size:14.5px}
+  .mag .more::after{content:" ›";font-size:18px}
+
+  /* app promo */
+  .app{background:var(--ink);color:#fff}
+  .app .wrap{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;padding:66px 22px}
+  .app h2{font-size:clamp(26px,3vw,36px);font-weight:900;letter-spacing:-.5px}
+  .app p{color:#b9bdc7;font-size:17.5px;margin-top:14px;max-width:480px}
+  .app ul{list-style:none;margin-top:22px;display:grid;gap:12px}
+  .app li{display:flex;gap:11px;align-items:center;font-size:16px}
+  .app li svg{color:#5B9BFF;flex:0 0 auto}
+  .phone-mock{justify-self:center;width:230px;height:430px;border-radius:34px;background:linear-gradient(160deg,#1f2530,#0e1118);border:6px solid #2a313d;padding:18px;display:flex;flex-direction:column;gap:12px}
+  .pm-bar{height:10px;border-radius:6px;background:#2f3744}
+  .pm-card{border-radius:14px;background:linear-gradient(135deg,#0B5CD6,#083F95);height:96px}
+  .pm-row{height:46px;border-radius:12px;background:#222a36}
+
+  /* footer */
+  footer{background:#0f1115;color:#cfd2da;padding:54px 0 30px;font-size:15px}
+  .fgrid{display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:30px}
+  .footer-logo{color:#fff;font-size:24px;font-weight:900;display:flex;align-items:center;gap:8px}
+  .footer-logo .dot{width:12px;height:12px;border-radius:50%;background:var(--blue)}
+  .fgrid p{color:#9aa0ad;margin-top:13px;max-width:280px;font-size:14.5px}
+  .fgrid h5{color:#fff;font-size:13px;text-transform:uppercase;letter-spacing:1px;margin-bottom:13px}
+  .fgrid a{display:block;padding:5px 0;color:#cfd2da}
+  .fgrid a:hover{color:#fff}
+  .fnote{margin-top:38px;padding-top:20px;border-top:1px solid #262a33;color:#8a909d;font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+
+  @media (max-width:920px){
+    nav.main,.util{display:none}
+    .burger{display:block}
+    .hero .wrap{grid-template-columns:1fr;gap:34px;padding:52px 22px 64px}
+    .grid,.mag-grid{grid-template-columns:1fr 1fr}
+    .app .wrap{grid-template-columns:1fr;gap:34px}
+    .phone-mock{order:-1}
+    .fgrid{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:560px){
+    .nav-cta .phone{display:none}
+    .grid,.mag-grid{grid-template-columns:1fr}
+    .hero-actions .btn{flex:1 1 100%}
+    .fgrid{grid-template-columns:1fr}
+    section.block{padding:54px 0}
+  }
+</style>
+</head>
+<body>
+
+<!-- Utility bar -->
+<div class="util">
+  <div class="wrap">
+    <a href="#">Privatkunden</a><a href="#">Unternehmen</a><span class="sep"></span>
+    <a href="#">myUnica Login</a><a href="#">Standorte</a><a href="#">DE / EN</a>
+  </div>
+</div>
+
+<!-- Header -->
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#" aria-label="Unica Startseite"><span class="dot"></span>Uni<b>ca</b></a>
+    <nav class="main" aria-label="Hauptnavigation">
+      <a href="#produkte">Versicherung</a>
+      <a href="#produkte">Vorsorge</a>
+      <a href="#produkte">Veranlagung</a>
+      <a href="#service">Schaden melden</a>
+      <a href="#service">Kontakt</a>
+    </nav>
+    <div class="nav-cta">
+      <span class="phone">050 677 670</span>
+      <a class="btn btn-primary" href="#beratung">Beratung vereinbaren</a>
+      <button class="burger" id="burger" aria-label="Menü öffnen" aria-expanded="false">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16181D" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+  <nav class="mobile-menu" id="mobileMenu" aria-label="Mobile Navigation">
+    <a href="#produkte">Versicherung</a><a href="#produkte">Vorsorge</a><a href="#produkte">Veranlagung</a>
+    <a href="#service">Schaden melden</a><a href="#beratung">Beratung vereinbaren</a>
+  </nav>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <h1>Die Versicherung, der Österreich vertraut.</h1>
+      <p class="lede">Ob Auto, Eigenheim, Gesundheit oder Vorsorge – wir finden gemeinsam mit Ihnen den passenden Schutz. Persönlich und digital, rund um die Uhr.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#beratung" style="background:#fff;color:var(--blue)">Beratung vereinbaren</a>
+        <a class="btn btn-ghost" href="#produkte">Versicherungen entdecken</a>
+      </div>
+    </div>
+    <div class="quote-card">
+      <h3>Schnell zum passenden Schutz</h3>
+      <p>Wählen Sie einen Bereich – oder fragen Sie unseren Assistenten.</p>
+      <div class="qrow">
+        <a class="qtile" href="#produkte"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 13l2-5a2 2 0 0 1 2-1.3h10A2 2 0 0 1 19 8l2 5"/><path d="M5 17h14v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1H9v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/></svg>Kfz</a>
+        <a class="qtile" href="#produkte"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/></svg>Eigenheim</a>
+        <a class="qtile" href="#produkte"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-9-9a4.5 4.5 0 0 1 8-3 4.5 4.5 0 0 1 8 3c-2 4.5-7 9-7 9z"/></svg>Gesundheit</a>
+        <a class="qtile" href="#produkte"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V6a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2z"/><path d="M14 4v5h5"/></svg>Vorsorge</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Products -->
+<section class="block" id="produkte">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">Unsere Versicherungen</div>
+      <h2>Schutz für jeden Bereich Ihres Lebens</h2>
+      <p>Maßgeschneiderte Lösungen – einfach vergleichen und in wenigen Schritten online abschließen.</p>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 13l2-5a2 2 0 0 1 2-1.3h10A2 2 0 0 1 19 8l2 5"/><path d="M5 17h14v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-1H9v1a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1z"/><circle cx="7.5" cy="14.5" r="1"/><circle cx="16.5" cy="14.5" r="1"/></svg></div><h3>Kfz-Versicherung</h3><p>Haftpflicht, Kasko und Schutzbrief – fair kalkuliert, schnell abgeschlossen.</p><a class="more" href="#beratung">Mehr erfahren</a></div>
+      <div class="card"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-7 9 7"/><path d="M5 10v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-9"/><path d="M9 20v-6h6v6"/></svg></div><h3>Eigenheim & Haushalt</h3><p>Umfassender Schutz für Ihr Zuhause gegen Feuer, Sturm, Wasser und Einbruch.</p><a class="more" href="#beratung">Mehr erfahren</a></div>
+      <div class="card"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-9-9a4.5 4.5 0 0 1 8-3 4.5 4.5 0 0 1 8 3c-2 4.5-7 9-7 9z"/></svg></div><h3>Gesundheit</h3><p>Sonderklasse, Zahn und private Vorsorge – für die beste Betreuung im Ernstfall.</p><a class="more" href="#beratung">Mehr erfahren</a></div>
+      <div class="card"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V6a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2z"/><path d="M14 4v5h5"/><path d="M8 13h8M8 17h6"/></svg></div><h3>Leben & Vorsorge</h3><p>Private Pensionsvorsorge und Lebensversicherung – heute für morgen vorsorgen.</p><a class="more" href="#beratung">Mehr erfahren</a></div>
+      <div class="card"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3.5 9h17M3.5 15h17"/><path d="M12 3a14 14 0 0 0 0 18 14 14 0 0 0 0-18z"/></svg></div><h3>Reise & Freizeit</h3><p>Weltweiter Schutz für Reise, Storno und Freizeitsport – sorgenfrei unterwegs.</p><a class="more" href="#beratung">Mehr erfahren</a></div>
+      <div class="card"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18"/><path d="M5 21V8l7-4 7 4v13"/><path d="M9 21v-5h6v5"/></svg></div><h3>Unternehmen</h3><p>Betriebliche Absicherung von Haftpflicht bis Mitarbeitervorsorge. Gemeinsam wachsen.</p><a class="more" href="#beratung">Mehr erfahren</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- Consultation band -->
+<section class="consult" id="beratung">
+  <div class="wrap">
+    <div>
+      <h2>Persönliche Beratung – bequem von zu Hause.</h2>
+      <p>Einfach Thema und Zeitfenster wählen, unser Beratungsteam beantwortet Ihre Fragen. Online, telefonisch oder vor Ort.</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <a class="btn btn-primary" href="#service">Termin buchen</a>
+      <a class="btn btn-ghost" href="#service">Schaden melden</a>
+    </div>
+  </div>
+</section>
+
+<!-- Magazine -->
+<section class="block" id="magazin">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="kicker">Unica Magazin</div>
+      <h2>Wissen, das Sie weiterbringt</h2>
+    </div>
+    <div class="mag-grid">
+      <article class="mag"><div class="ph"></div><div class="body"><div class="tag">Ratgeber</div><h3>Warum „grobe Fahrlässigkeit" für Sie wichtig ist</h3><p>Wir erklären, wann dieser Versicherungsschutz wirklich zählt – und wie Sie sich absichern.</p><a class="more" href="#">Weiterlesen</a></div></article>
+      <article class="mag"><div class="ph b"></div><div class="body"><div class="tag">Studie</div><h3>Finanzvorsorge-Studie: So denkt Österreich</h3><p>Einstellungen, Meinungen und Barrieren rund um die private Pensionsvorsorge im Überblick.</p><a class="more" href="#">Weiterlesen</a></div></article>
+      <article class="mag"><div class="ph c"></div><div class="body"><div class="tag">Vorsorge</div><h3>Schutz vor Sturmschäden – und was im Ernstfall hilft</h3><p>So sichern Sie Ihr Zuhause ab und reagieren richtig, wenn der Sturm bereits Schaden angerichtet hat.</p><a class="more" href="#">Weiterlesen</a></div></article>
+    </div>
+  </div>
+</section>
+
+<!-- App promo -->
+<section class="app" id="service">
+  <div class="wrap">
+    <div>
+      <h2>myUnica – Ihre Versicherung in der Hosentasche.</h2>
+      <p>Jederzeit Zugriff auf Ihre Verträge und viele wertvolle Services. Einfach, schnell und ohne Wartezeiten.</p>
+      <ul>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg> Schäden und Unfälle in wenigen Minuten melden</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg> Rechnungen für die Krankenversicherung online einreichen</li>
+        <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg> Alle Polizzen an einem Ort gesammelt</li>
+      </ul>
+    </div>
+    <div class="phone-mock" aria-hidden="true">
+      <div class="pm-bar"></div><div class="pm-card"></div><div class="pm-row"></div><div class="pm-row"></div><div class="pm-row"></div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="wrap">
+    <div class="fgrid">
+      <div>
+        <div class="footer-logo"><span class="dot"></span>Unica</div>
+        <p>Versicherung, Vorsorge und Veranlagung – persönlich und digital. Der Schutz, dem Österreich vertraut.</p>
+      </div>
+      <div><h5>Versicherung</h5><a href="#produkte">Kfz</a><a href="#produkte">Eigenheim</a><a href="#produkte">Gesundheit</a><a href="#produkte">Reise</a></div>
+      <div><h5>Vorsorge</h5><a href="#produkte">Lebensversicherung</a><a href="#produkte">Pensionsvorsorge</a><a href="#produkte">Veranlagung</a><a href="#service">myUnica</a></div>
+      <div><h5>Service</h5><a href="#service">Schaden melden</a><a href="#beratung">Beratung</a><a href="#">Standorte</a><a href="#">Kontakt</a></div>
+    </div>
+    <div class="fnote">
+      <span>© 2026 Unica. Demonstrationsseite.</span>
+      <span><a href="#">Impressum</a> · <a href="#">Datenschutz</a> · <a href="#">Cookie-Einstellungen</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var b=document.getElementById('burger'), m=document.getElementById('mobileMenu');
+    b.addEventListener('click',function(){var o=m.classList.toggle('open');b.setAttribute('aria-expanded',o?'true':'false');});
+    m.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){m.classList.remove('open');b.setAttribute('aria-expanded','false');});});
+  })();
+</script>
+
+<!-- ============================================================= -->
+<!-- ElevenLabs voice assistant — floating expandable button,       -->
+<!-- bottom-right. Loads from ElevenLabs CDN. Agent: Unica.          -->
+<!-- ============================================================= -->
+<elevenlabs-convai agent-id="agent_3701kvdy0a45eywvg4yn9kw8pqv6"></elevenlabs-convai>
+<script src="https://unpkg.com/@elevenlabs/convai-widget-embed" async type="text/javascript"></script>
+
+</body>
+</html>
