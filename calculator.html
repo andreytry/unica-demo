@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Unica – Prämienrechner</title>
+<style>
+  :root{ --blue:#0B5CD6; --blue-d:#083F95; --ink:#0d1b2a; --muted:#5b6b7d; --line:#e2e8f0; --bg:#f4f7fb; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; color:var(--ink); background:var(--bg); }
+  header{ background:linear-gradient(135deg,var(--blue),var(--blue-d)); color:#fff; padding:22px 20px; }
+  header .wrap{ max-width:760px; margin:0 auto; }
+  .brand{ font-weight:800; font-size:22px; letter-spacing:.5px; }
+  .sub{ opacity:.9; font-size:14px; margin-top:4px; }
+  main{ max-width:760px; margin:0 auto; padding:20px; }
+  .card{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:20px; box-shadow:0 6px 20px rgba(8,63,149,.06); }
+  h2{ font-size:18px; margin:0 0 14px; }
+  .lines{ display:grid; grid-template-columns:repeat(5,1fr); gap:8px; margin-bottom:18px; }
+  .lines button{ border:1px solid var(--line); background:#fff; color:var(--ink); padding:10px 6px; border-radius:10px; font-size:13px; cursor:pointer; font-weight:600; }
+  .lines button.active{ background:var(--blue); color:#fff; border-color:var(--blue); }
+  label{ display:block; font-size:13px; color:var(--muted); margin:12px 0 5px; font-weight:600; }
+  input,select{ width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:9px; font-size:15px; background:#fff; }
+  .row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .calc{ margin-top:18px; width:100%; background:var(--blue); color:#fff; border:none; padding:14px; border-radius:11px; font-size:16px; font-weight:700; cursor:pointer; }
+  .calc:active{ background:var(--blue-d); }
+  .result{ margin-top:18px; border-top:1px dashed var(--line); padding-top:18px; display:none; }
+  .result .prod{ font-size:14px; color:var(--muted); }
+  .result .big{ font-size:40px; font-weight:800; color:var(--blue-d); margin:6px 0 2px; }
+  .result .range{ font-size:14px; color:var(--muted); }
+  .result .disc{ font-size:12px; color:var(--muted); margin-top:12px; line-height:1.5; }
+  .note{ font-size:12px; color:var(--muted); margin-top:6px; }
+  .hint{ background:#eef4ff; border:1px solid #d6e4ff; color:#1e3a8a; padding:10px 12px; border-radius:9px; font-size:13px; margin-top:12px; display:none; }
+  footer{ max-width:760px; margin:0 auto; padding:18px 20px 40px; color:var(--muted); font-size:12px; }
+</style>
+</head>
+<body>
+<header><div class="wrap"><div class="brand">UNICA</div><div class="sub">Prämienrechner – unverbindliche Vorab-Berechnung</div></div></header>
+<main>
+  <div class="card">
+    <h2>Welche Versicherung möchten Sie berechnen?</h2>
+    <div class="lines" id="lines">
+      <button data-line="car" class="active">Kfz</button>
+      <button data-line="liability">Haftpflicht</button>
+      <button data-line="home_contents">Haushalt</button>
+      <button data-line="legal">Rechtsschutz</button>
+      <button data-line="life">Leben</button>
+    </div>
+    <div id="fields"></div>
+    <button class="calc" id="calcBtn">Prämie berechnen</button>
+    <div class="hint" id="hint"></div>
+    <div class="result" id="result">
+      <div class="prod" id="rProd"></div>
+      <div class="big" id="rBig"></div>
+      <div class="range" id="rRange"></div>
+      <div class="disc" id="rDisc"></div>
+    </div>
+  </div>
+</main>
+<footer>Vorläufige Schätzung auf Basis Ihrer Angaben. Das verbindliche Angebot erstellt Unica nach kurzer Prüfung. Demo – aiProcess.</footer>
+
+<script>
+var WEBHOOK = "https://ai-process.app.n8n.cloud/webhook/unica-quote-v3";
+var line = "car";
+
+var FORMS = {
+  car: [
+    {k:"coverage", l:"Deckung", t:"select", o:["Haftpflicht","Teilkasko","Vollkasko"]},
+    {k:"driver_age", l:"Alter Hauptlenker", t:"number", ph:"z. B. 42"},
+    {k:"power_kw", l:"Leistung (kW)", t:"number", ph:"z. B. 110"},
+    {k:"region", l:"Ort / PLZ", t:"text", ph:"z. B. Wien"},
+    {k:"vehicle_value", l:"Fahrzeugwert (€)", t:"number", ph:"z. B. 25000"},
+    {k:"claims_free_years", l:"Schadenfreie Jahre", t:"number", ph:"z. B. 8"},
+    {k:"num_drivers", l:"Anzahl Lenker", t:"number", ph:"z. B. 2"}
+  ],
+  liability: [
+    {k:"household", l:"Haushalt", t:"select", o:["Single","Familie"]},
+    {k:"region", l:"Ort / PLZ", t:"text", ph:"z. B. Graz"}
+  ],
+  home_contents: [
+    {k:"contents_value", l:"Versicherungssumme (€)", t:"number", ph:"z. B. 40000"},
+    {k:"region", l:"Ort / PLZ", t:"text", ph:"z. B. Linz"},
+    {k:"coverage", l:"Tarif", t:"select", o:["Standard","Plus"]},
+    {k:"security", l:"Sicherung", t:"select", o:["Keine","Alarmanlage"]}
+  ],
+  legal: [
+    {k:"coverage", l:"Umfang", t:"select", o:["Privat","Kombi (Verkehr/Beruf)"]}
+  ],
+  life: [
+    {k:"age", l:"Alter", t:"number", ph:"z. B. 40"},
+    {k:"sum_assured", l:"Versicherungssumme (€)", t:"number", ph:"z. B. 100000"},
+    {k:"term_years", l:"Laufzeit (Jahre)", t:"number", ph:"z. B. 20"},
+    {k:"tobacco", l:"Raucher", t:"select", o:["Nein","Ja"]},
+    {k:"coverage", l:"Produkt", t:"select", o:["Risikoleben","Vorsorge"]}
+  ]
+};
+
+function renderFields(){
+  var f = FORMS[line], html = "";
+  for(var i=0;i<f.length;i++){
+    var fld = f[i];
+    html += '<label for="'+fld.k+'">'+fld.l+'</label>';
+    if(fld.t==="select"){
+      html += '<select id="'+fld.k+'">';
+      for(var j=0;j<fld.o.length;j++){ html += '<option value="'+fld.o[j]+'">'+fld.o[j]+'</option>'; }
+      html += '</select>';
+    } else {
+      html += '<input id="'+fld.k+'" type="'+fld.t+'" placeholder="'+(fld.ph||"")+'" />';
+    }
+  }
+  document.getElementById("fields").innerHTML = html;
+  document.getElementById("result").style.display="none";
+  document.getElementById("hint").style.display="none";
+}
+
+document.getElementById("lines").addEventListener("click", function(e){
+  if(e.target.tagName!=="BUTTON") return;
+  var btns = this.querySelectorAll("button");
+  for(var i=0;i<btns.length;i++) btns[i].classList.remove("active");
+  e.target.classList.add("active");
+  line = e.target.getAttribute("data-line");
+  renderFields();
+});
+
+function val(k){ var el=document.getElementById(k); return el? el.value : ""; }
+
+document.getElementById("calcBtn").addEventListener("click", function(){
+  var body = { line_of_business: line, mode: "precise" };
+  var f = FORMS[line];
+  for(var i=0;i<f.length;i++){ var k=f[i].k; var v=val(k); if(v!=="") body[k]=v; }
+  var btn=this; btn.textContent="Berechne…"; btn.disabled=true;
+  fetch(WEBHOOK, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) })
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      btn.textContent="Prämie berechnen"; btn.disabled=false;
+      var hint=document.getElementById("hint"), res=document.getElementById("result");
+      if(d.status==="NeedsReview"){
+        hint.style.display="block";
+        hint.textContent="Bitte ergänzen Sie für eine genaue Berechnung: "+ (d.missing_fields||[]).join(", ");
+        res.style.display="none"; return;
+      }
+      if(d.status==="Disqualified"){
+        hint.style.display="block"; hint.textContent=d.rationale||"Nicht verfügbar."; res.style.display="none"; return;
+      }
+      hint.style.display="none";
+      document.getElementById("rProd").textContent = d.recommended_product ? d.recommended_product.ProductName : "";
+      document.getElementById("rBig").textContent = "ca. " + Number(d.estimate).toLocaleString("de-AT") + " € / Jahr";
+      document.getElementById("rRange").textContent = "Spanne: " + d.indicative_range.low.toLocaleString("de-AT") + " – " + d.indicative_range.high.toLocaleString("de-AT") + " € pro Jahr";
+      document.getElementById("rDisc").textContent = d.disclaimer || "";
+      res.style.display="block";
+    })
+    .catch(function(err){
+      btn.textContent="Prämie berechnen"; btn.disabled=false;
+      var hint=document.getElementById("hint"); hint.style.display="block";
+      hint.textContent="Verbindung fehlgeschlagen. Bitte erneut versuchen.";
+    });
+});
+
+renderFields();
+</script>
+</body>
+</html>
