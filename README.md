@@ -1,2 +1,2 @@
-# unica-demo
-Unica – Versicherungs-Landingpage mit Sprachassistent
+# vplus-demo
+VPlus – Versicherungs-Landingpage mit Sprachassistent
