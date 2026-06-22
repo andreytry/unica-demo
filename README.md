@@ -1,2 +1,2 @@
 # vplus-demo
-VPlus – Versicherungs-Landingpage mit Sprachassistent
+V+ Versicherung – Versicherungs-Landingpage mit Sprachassistent
