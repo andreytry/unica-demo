@@ -1,0 +1,12 @@
+{
+  "_note": "V+ Versicherung — Empfang (router/dispatcher). Greets, asks Angebot vs Schaden, transfers to the right agent via ElevenLabs transfer_to_agent.",
+  "agent_id": "agent_3201kw8trpk1fhzr6xqkqq5bf9h8",
+  "name": "V+ Versicherung — Empfang",
+  "status": "LIVE",
+  "voice_id": "BtJhEZecBTSpKQ8EHRCJ",
+  "first_message_de": "Hallo, hier ist V+ Versicherung. Möchten Sie ein Angebot für eine Versicherung, oder einen Schaden melden?",
+  "transfers": [
+    { "agent_id": "agent_3701kvdy0a45eywvg4yn9kw8pqv6", "to": "Lead Qualification", "condition": "offer / quote / new policy" },
+    { "agent_id": "agent_2301kw8tntcnfc3tfmdac3qwde3d", "to": "Schadenmeldung", "condition": "report a claim / Schaden melden" }
+  ]
+}

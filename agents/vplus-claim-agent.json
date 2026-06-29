@@ -1,5 +1,8 @@
 {
   "_note": "V+ Versicherung — Schadenmeldung (generic claim intake) agent SPEC. Create in ElevenLabs once the n8n execution quota is restored. Generic single-claim capture, no sub-casing, no policy lookup logic (acknowledged only). On finish it calls create_claim_case which creates a Pega case via DX API and returns the case ID, which the agent reads back to the caller.",
+  "agent_id": "agent_2301kw8tntcnfc3tfmdac3qwde3d",
+  "tool_id": "tool_2901kw8tnrv5fhermw3txvf8v7j4",
+  "status": "LIVE",
   "name": "V+ Versicherung — Schadenmeldung",
   "language_default": "de",
   "tts": { "model_id": "eleven_multilingual_v2", "voice_id": "BtJhEZecBTSpKQ8EHRCJ", "_voice_name": "Lena - V+ Versicherung" },

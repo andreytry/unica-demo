@@ -8,9 +8,10 @@ Voice agents for the V+ Versicherung demo. German-first (Austrian market), Lena 
 Live: `agent_3701kvdy0a45eywvg4yn9kw8pqv6`. Captures only the price-driving fields per line, gives an indicative pre-quote via `get_indicative_quote`, then offers the binding offer by SMS or email. Post-call → `pega-lead-intake` webhook creates a Pega lead case.
 
 ### 2. Schadenmeldung (claim intake) — `vplus-claim-agent.json`
-Generic single-claim capture for ANY line. No qualification, no policy lookup. Collects policy number + name + contact + what/when/where, then calls `create_claim_case` (→ n8n `vplus-claim-create` → Pega DX API) and reads the returned **case number** back to the caller. Status: SPEC ready; create in ElevenLabs once n8n execution quota is restored.
+Generic single-claim capture for ANY line. No qualification, no policy lookup. Collects policy number + name + contact + what/when/where, then calls `create_claim_case` (→ n8n `vplus-claim-create` → Pega DX API) and reads the returned **case number** back to the caller. Status: **LIVE** — `agent_2301kw8tntcnfc3tfmdac3qwde3d`, tool `tool_2901kw8tnrv5fhermw3txvf8v7j4`.
 
-### 3. Empfang / Router (dispatcher) — spec below
+### 3. Empfang / Router (dispatcher) — `vplus-router-agent.json`
+Live: `agent_3201kw8trpk1fhzr6xqkqq5bf9h8`. Spec below.
 Greets the caller and asks intent, then transfers to the right agent via ElevenLabs `transfer_to_agent`.
 
 ```json
@@ -23,7 +24,7 @@ Greets the caller and asks intent, then transfers to the right agent via ElevenL
   "transfer_to_agent": {
     "transfers": [
       { "agent_id": "agent_3701kvdy0a45eywvg4yn9kw8pqv6", "condition": "Caller wants an insurance offer, a quote, or a new policy" },
-      { "agent_id": "<CLAIM_AGENT_ID once created>", "condition": "Caller wants to report a claim / Schaden melden" }
+      { "agent_id": "agent_2301kw8tntcnfc3tfmdac3qwde3d", "condition": "Caller wants to report a claim / Schaden melden" }
     ]
   }
 }
