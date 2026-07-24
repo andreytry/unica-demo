@@ -1,0 +1,100 @@
+{
+    "name": "ElevenLabs Create Router Agent",
+    "nodes": [
+        {
+            "id": "73de70c7-4ede-4fc2-b72e-c11afcbb495a",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "a267b312-abb5-419b-ae7b-10e73134806e",
+            "name": "Create Router Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/create",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "name": "V+ Versicherung - Empfang (Router)",
+                    "conversation_config": {
+                        "tts": {
+                            "model_id": "eleven_multilingual_v2",
+                            "voice_id": "EXAVITQu4vr4xnSDxMaL"
+                        },
+                        "agent": {
+                            "prompt": {
+                                "llm": "gemini-2.5-flash",
+                                "tools": [
+                                    {
+                                        "name": "transfer_to_agent",
+                                        "type": "system",
+                                        "params": {
+                                            "transfers": [
+                                                {
+                                                    "agent_id": "agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                                                    "condition": "The caller wants a new insurance contract, an offer, or a price quote (neuer Vertrag / Angebot)."
+                                                },
+                                                {
+                                                    "agent_id": "agent_2201kw1tcf84fg3aad5wg14epxns",
+                                                    "condition": "The caller wants to report a claim or damage (Schadenmeldung / Schaden melden)."
+                                                }
+                                            ],
+                                            "system_tool_type": "transfer_to_agent"
+                                        },
+                                        "description": "Transfer the caller to the right specialist agent based on their intent."
+                                    }
+                                ],
+                                "prompt": "Du bist die Empfangs-Assistentin von 'V+ Versicherung'. Standardsprache ist Deutsch. Wenn der Anrufer Englisch spricht oder 'English' sagt, wechsle sofort zu Englisch.\n\nDeine EINZIGE Aufgabe: herausfinden, ob der Anrufer (A) einen neuen Vertrag bzw. ein Angebot moechte, oder (B) einen Schaden melden moechte (Schadenmeldung).\n\nSobald das klar ist, uebergib das Gespraech sofort mit dem Tool 'transfer_to_agent' an den passenden Spezialisten. Stelle KEINE weiteren Fragen und sammle KEINE Daten selbst. Wenn die Absicht unklar ist, frage genau einmal: 'Moechten Sie einen neuen Vertrag oder eine Schadenmeldung?'"
+                            },
+                            "language": "de",
+                            "first_message": "Hallo, hier ist V+ Versicherung. Moechten Sie einen neuen Vertrag bzw. ein Angebot, oder eine Schadenmeldung? (For English, just say English.)"
+                        }
+                    }
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Router Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
