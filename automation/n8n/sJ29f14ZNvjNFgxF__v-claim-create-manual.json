@@ -1,0 +1,125 @@
+{
+    "name": "V+ — Claim create MANUAL",
+    "nodes": [
+        {
+            "id": "726b71b4-c92c-4e96-882c-762ce5470003",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "7f3047a5-1a49-4cb7-85ee-c0754177bd8d",
+            "name": "Map Claim",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar b = {\n  conversation_id:\"claim-manual-001\",\n  policy_number:\"KFZ-99887766\",\n  full_name:\"Maria Huber\",\n  phone:\"06769988776\",\n  email:\"maria.huber@example.at\",\n  loss_type:\"Kfz Unfall\",\n  date_of_loss:\"2026-06-20\",\n  location:\"Wien, Ringstrasse\",\n  description:\"Auffahrunfall an einer roten Ampel, Heckschaden am eigenen Fahrzeug.\",\n  injuries:\"nein\",\n  third_party:\"ja, ein weiteres Fahrzeug\",\n  estimated_amount:\"3000 Euro\"\n};\nfunction v(k){ return (b[k]!==undefined && b[k]!==null) ? String(b[k]) : \"\"; }\nvar conv = v(\"conversation_id\");\nvar label = (\"Schaden \" + v(\"loss_type\") + \" \" + v(\"policy_number\") + \" \" + v(\"full_name\")).trim().slice(0,128);\nvar desc = [\n  \"SCHADENMELDUNG (V+ Versicherung)\",\n  \"Policy: \" + v(\"policy_number\"),\n  \"Name: \" + v(\"full_name\"),\n  \"Phone: \" + v(\"phone\"),\n  \"Email: \" + v(\"email\"),\n  \"Schadenart: \" + v(\"loss_type\"),\n  \"Schadendatum: \" + v(\"date_of_loss\"),\n  \"Ort: \" + v(\"location\"),\n  \"Hergang: \" + v(\"description\"),\n  \"Verletzte: \" + v(\"injuries\"),\n  \"Dritte beteiligt: \" + v(\"third_party\"),\n  \"Geschaetzter Betrag: \" + v(\"estimated_amount\"),\n  \"Kanal: Voice (ElevenLabs)\"\n].join(\"\\n\");\nvar pega = { caseTypeID: \"MyOrg-CILM-Work-LeadIntake\", content: { ExternalConversationID: conv, SourceChannel: \"WebVoice\", pyLabel: label, pyDescription: desc } };\nreturn [{ json: { pega: pega } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "4ba636c3-bd99-454c-9b15-4f7d1a52b848",
+            "name": "Create Pega",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.pega) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Basic YWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "c6410675-c31c-4ce4-8a25-ad7cb97b950e",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar id = null; try { id = b.ID || b.pyID || null; } catch(e){}\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), case_id: id, raw: (id? null : b) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Map Claim",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map Claim": {
+            "main": [
+                [
+                    {
+                        "node": "Create Pega",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Pega": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
