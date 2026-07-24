@@ -1,0 +1,150 @@
+{
+    "name": "Unica — Pega create case (real)",
+    "nodes": [
+        {
+            "id": "b4c3b485-b9bf-407e-8dcb-018ce85f9ccf",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "3418b5a2-7097-4530-b9d1-171b5fbc10cc",
+            "name": "Sample Payload",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar body = { type:\"post_call_transcription\", data:{ agent_id:\"agent_3701kvdy0a45eywvg4yn9kw8pqv6\", conversation_id:\"test-conv-001\", status:\"done\",\n transcript:[ {role:\"agent\",message:\"Hallo, hier ist Unica. Welche Versicherung moechten Sie?\"}, {role:\"user\",message:\"Eine Kfz-Versicherung, Vollkasko.\"}, {role:\"agent\",message:\"Wie alt ist der Hauptlenker?\"}, {role:\"user\",message:\"42 Jahre, 110 kW, Wien, Fahrzeugwert 25000 Euro, 8 schadenfreie Jahre, ein Lenker.\"}, {role:\"agent\",message:\"Die genaue Vorab-Praemie liegt bei circa 1260 Euro pro Jahr fuer Kfz-Vollkasko.\"}, {role:\"user\",message:\"Max Mustermann, 0660 1234567.\"} ],\n metadata:{ call_duration_secs:95, phone_call:null },\n analysis:{ transcript_summary:\"Kunde wuenscht Kfz-Vollkasko fuer 42-jaehrigen Lenker in Wien, 110 kW, Wert 25000 Euro, 8 schadenfreie Jahre. Vorab-Praemie ca. 1260 Euro pro Jahr. Kontakt: Max Mustermann, 0660 1234567.\", call_successful:\"success\",\n  data_collection_results:{ full_name:{value:\"Max Mustermann\"}, mobile_phone:{value:\"06601234567\"}, email:{value:null}, postal_code:{value:null}, date_of_birth:{value:null}, preferred_language:{value:\"German\"}, line_of_business:{value:\"car\"}, lead_intent:{value:\"New\"}, indicative_quote:{value:\"1260 Euro pro Jahr fuer Kfz-Vollkasko\"}, line_specific_details:{value:\"Vollkasko, 42 J., 110 kW, Wien, 25000 Euro, 8 sf, 1 Lenker\"}, current_carrier:{value:null}, current_premium:{value:null}, budget:{value:null}, effective_date:{value:null}, prior_claims:{value:\"0\"}, prior_lapse:{value:null}, consent_tcpa:{value:true}, consent_recording:{value:null}, conversation_summary:{value:\"Kfz-Vollkasko Lead, Max Mustermann\"} } } } };\nreturn [{ json: { body: body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "543d94ca-14b1-4801-88a9-e7fc7cebae70",
+            "name": "Map to Pega",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar b = $json.body || $json;\nvar d = b.data || b;\nvar dc = (d.analysis && d.analysis.data_collection_results) || {};\nfunction v(k){ return (dc[k] && dc[k].value!==undefined && dc[k].value!==null) ? dc[k].value : \"\"; }\nvar tr = d.transcript || [];\nvar full = tr.map(function(t){ return (t.role||\"\")+\": \"+(t.message||\"\"); }).join(\"\\n\");\nvar convId = d.conversation_id || (\"CONV-\"+Date.now());\nvar content = {\n  SourceChannel: (d.metadata && d.metadata.phone_call) ? \"Phone\" : \"WebVoice\",\n  ExternalConversationID: convId,\n  LineOfBusiness: v(\"line_of_business\"),\n  LeadIntent: v(\"lead_intent\"),\n  QualificationMode: \"LLM\",\n  IndicativeQuote: v(\"indicative_quote\"),\n  ConversationSummary: (d.analysis && d.analysis.transcript_summary) || v(\"conversation_summary\"),\n  FullName: v(\"full_name\"),\n  MobilePhone: v(\"mobile_phone\"),\n  Email: v(\"email\"),\n  PostalCode: v(\"postal_code\"),\n  PreferredLanguage: v(\"preferred_language\"),\n  LineSpecificDetails: v(\"line_specific_details\"),\n  PriorClaims: v(\"prior_claims\"),\n  ConsentTCPA: !!(dc.consent_tcpa && dc.consent_tcpa.value),\n  TranscriptText: full,\n  SlotMapJSON: JSON.stringify(dc)\n};\nvar pega_body = { caseTypeID: \"MyOrg-CILM-Work-LeadIntake\", content: content };\nreturn [{ json: { conversation_id: convId, pega_body: pega_body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "f106723b-a4f3-4902-85a6-13b212f54f6b",
+            "name": "Create Pega Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.pega_body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Basic YWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "651e4cf0-3f22-4087-8e37-50395dba6109",
+            "name": "Result",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json;\nvar sent = $('Map to Pega').first().json;\nvar status = (r.statusCode!==undefined? r.statusCode : null);\nvar body = (r.body!==undefined? r.body : r);\nvar caseId = null;\ntry { caseId = body.ID || body.pyID || (body.data && body.data.caseInfo && body.data.caseInfo.ID) || null; } catch(e){}\nreturn [{ json: { ok:(status>=200&&status<300), pega_status:status, pega_case_id:caseId, external_conversation_id:sent.conversation_id, pega_response:body } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Sample Payload",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map to Pega": {
+            "main": [
+                [
+                    {
+                        "node": "Create Pega Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Sample Payload": {
+            "main": [
+                [
+                    {
+                        "node": "Map to Pega",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Pega Case": {
+            "main": [
+                [
+                    {
+                        "node": "Result",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
