@@ -1,0 +1,105 @@
+{
+    "name": "ElevenLabs — v2 tool + precise prompt",
+    "nodes": [
+        {
+            "id": "d53cafb1-fa77-49e5-a746-f5a5c3104361",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "869c8c74-fc8e-4324-b9fd-859110531b65",
+            "name": "Repoint Tool v2",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/tools/tool_9701kverhzztffcasbn13kkw225k",
+                "method": "PATCH",
+                "options": {
+                },
+                "jsonBody": "{\n  \"tool_config\": {\n    \"type\": \"webhook\",\n    \"name\": \"get_indicative_quote\",\n    \"description\": \"Return a precise indicative annual price for the chosen Unica retail line. Only call once ALL rating fields for that line are collected. Returns estimate (a single number), indicative_range, recommended_product, status and missing_fields.\",\n    \"response_timeout_secs\": 20,\n    \"api_schema\": {\n      \"url\": \"https://ai-process.app.n8n.cloud/webhook/unica-quote-v2\",\n      \"method\": \"POST\",\n      \"request_body_schema\": {\n        \"type\": \"object\",\n        \"required\": [\"line_of_business\"],\n        \"properties\": {\n          \"line_of_business\": { \"type\": \"string\", \"description\": \"Insurance type the caller names, DE or EN, e.g. Kfz, Haftpflicht, Haushalt, Rechtsschutz, Lebensversicherung\" },\n          \"name\": { \"type\": \"string\", \"description\": \"Caller name\" },\n          \"phone\": { \"type\": \"string\", \"description\": \"Caller phone number\" },\n          \"email\": { \"type\": \"string\", \"description\": \"Caller email\" },\n          \"region\": { \"type\": \"string\", \"description\": \"City or postal code, e.g. wien, graz, linz or land\" },\n          \"age\": { \"type\": \"number\", \"description\": \"life: age of the insured person\" },\n          \"coverage\": { \"type\": \"string\", \"description\": \"car: haftpflicht, teilkasko or vollkasko; home: plus for premium; legal: kombi for combo; life: vorsorge for savings\" },\n          \"driver_age\": { \"type\": \"number\", \"description\": \"car: age of the main driver\" },\n          \"power_kw\": { \"type\": \"number\", \"description\": \"car: engine power in kW\" },\n          \"bonus_malus\": { \"type\": \"number\", \"description\": \"car: 0.5 best to 1.8 worst, optional\" },\n          \"household\": { \"type\": \"string\", \"description\": \"liability: single or family\" },\n          \"contents_value\": { \"type\": \"number\", \"description\": \"home_contents: sum insured in EUR\" },\n          \"sum_assured\": { \"type\": \"number\", \"description\": \"life: cover amount in EUR\" },\n          \"term_years\": { \"type\": \"number\", \"description\": \"life: term length in years\" },\n          \"tobacco\": { \"type\": \"boolean\", \"description\": \"life: is the person a smoker\" }\n        }\n      }\n    }\n  }\n}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "7ea58c74-c42f-4670-9756-002af9a6eb13",
+            "name": "PATCH Agent v2",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                },
+                "jsonBody": "{\n  \"conversation_config\": {\n    \"agent\": {\n      \"prompt\": {\n        \"prompt\": \"You are Unica, a professional and concise bilingual insurance assistant for retail customers in Austria. You speak GERMAN by default and only switch to English if the customer does. Keep every turn short and business-like; ask exactly ONE question at a time; no small talk; never list all options. [AFTER THE CUSTOMER NAMES A TYPE] Say the disclaimer once, briefly: Die Preise sind Schaetzungen, nicht der endgueltige Preis; das genaue Angebot erhalten Sie per E-Mail. Then collect the rating details. [SUPPORTED] car (Kfz), liability (Haftpflicht), home_contents (Haushalt or Hausrat), legal (Rechtsschutz), life (Lebensversicherung). [NOT SUPPORTED] Anything else, for example Krankenversicherung, Reise, Gewerbe: say immediately Das wird aktuell leider nicht angeboten, aber ich leite Sie an einen Spezialisten weiter, der Sie zurueckruft, then take name and phone and close. [COLLECT ALL RATING FIELDS BEFORE QUOTING] Ask, one at a time, every field the line needs for a precise estimate. car: coverage (Haftpflicht, Teilkasko or Vollkasko), the driver age, the engine power in kW, and the region or postal code. liability: single or family, and the region. home_contents: the sum insured in euros, and the region. legal: private only, or also Verkehr and Beruf. life: the age, the cover sum in euros, the term in years, and whether the person smokes. Do not quote until you have them all. [CALL THE TOOL] Once you have the fields, call get_indicative_quote with everything you collected. If it returns missing_fields, ask only for those, then call it again, and keep going until it returns a price. [GIVE THE RESULT] Do not announce that you are calculating; never say one moment or I have everything. Just call the tool, then state one short sentence using the estimate value it returns: Die Praemie liegt bei ca. ESTIMATE Euro pro Jahr fuer PRODUKT. Then add: das ist ein Richtwert, das genaue Angebot kommt per E-Mail. [THE CUSTOMER IS RIGHT] If the customer gives you values or asks you to just estimate with what they gave, use their numbers, call the tool, and confirm the inputs back in one short line. [CONTACT AND CLOSE] Collect the name, a phone number, and an email. Read the phone back once to confirm. Then close: Das genaue Angebot schicke ich Ihnen per E-Mail, den Link erhalten Sie zusaetzlich per SMS. End politely. [RULES] State only the estimate the tool returns; never invent a number. Never give binding, legal or tax advice. Case creation is out of scope.\",\n        \"tool_ids\": [\"tool_9701kverhzztffcasbn13kkw225k\"]\n      }\n    }\n  }\n}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Repoint Tool v2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Repoint Tool v2": {
+            "main": [
+                [
+                    {
+                        "node": "PATCH Agent v2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
