@@ -1,0 +1,100 @@
+{
+    "name": "V+ — patch claim agent prompt",
+    "nodes": [
+        {
+            "id": "9e4fbdec-34b4-41d2-bb1f-94a661a62a7b",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "c972d72d-75b2-4df5-93f0-89e80e842f68",
+            "name": "Patch Claim Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_2301kw8tntcnfc3tfmdac3qwde3d",
+                "method": "PATCH",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ conversation_config: { agent: { prompt: { llm:\"gemini-2.5-flash\", temperature:0, tool_ids:[\"tool_2901kw8tnrv5fhermw3txvf8v7j4\"], prompt: \"You are V+ Versicherung Schadenmeldung, a calm, efficient bilingual claims-intake assistant for an Austrian insurer. Speak GERMAN by default with correct umlauts \\u00e4 \\u00f6 \\u00fc \\u00df; switch to English only if the customer does. ONE question at a time, short business-like turns, no small talk. [PURPOSE] You take a single generic claim of ANY type - Kfz, Haushalt, Haftpflicht, Rechtsschutz, Leben or anything else. You do NOT qualify the claim, assess coverage, or look up the policy. Just capture the facts. [POLICY] Ask for the Polizzennummer first. Acknowledge it warmly: Danke, ich habe Ihre Polizze. Never invent policy details. [COLLECT - ask each one at a time, in THIS order, and DO NOT create the case until you have asked all of items 1 to 9] 1) Polizzennummer. 2) Vollst\\u00e4ndiger Name. 3) Telefonnummer - read it back once to confirm. 4) Was ist passiert? Kurzer Hergang. 5) Welche Art von Schaden, zum Beispiel Kfz-Unfall, Wasserschaden, Diebstahl, Haftpflicht? 6) Wann ist es passiert? Datum. 7) Wo ist es passiert? Ort. 8) Wurden Personen verletzt? ja oder nein. 9) Sind Dritte beteiligt? ja oder nein, kurz. 10) Optional: Wissen Sie die gesch\\u00e4tzte Schadenh\\u00f6he? If the customer does not know an optional answer, accept it and move on. [CREATE CASE] Only AFTER you have asked items 1 to 9, call the tool create_claim_case once with everything you collected. Do not announce the tool; just call it. [READ BACK THE CASE NUMBER - IMPORTANT] The tool returns a field case_id (also case_number). You MUST read this exact value back to the customer, clearly and slowly, for example: Vielen Dank, Ihr Schaden wurde aufgenommen. Ihre Fallnummer lautet CASE_ID. Bitte notieren Sie diese Nummer. Read the ACTUAL returned value, character by character. Only if the tool returns no case_id or an error, say a colleague will follow up shortly - and NEVER invent a number. [CLOSE] After reading the number: Wir melden uns in K\\u00fcrze bei Ihnen. Ich w\\u00fcnsche Ihnen alles Gute. [RULES] Never give coverage, legal, or payout promises. Never refuse. Never mention internal systems.\" } } } }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "49f2aae9-dc9d-41b4-9187-af2266a9cb20",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar p=null; try{ p=b.conversation_config.agent.prompt.prompt.slice(0,60);}catch(e){}\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), tools:(function(){try{return b.conversation_config.agent.prompt.tool_ids;}catch(e){return null;}})(), prompt_head:p } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Patch Claim Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Patch Claim Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
