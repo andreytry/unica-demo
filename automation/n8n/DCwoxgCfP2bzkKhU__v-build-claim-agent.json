@@ -1,0 +1,177 @@
+{
+    "name": "V+ — build claim agent",
+    "nodes": [
+        {
+            "id": "0c996c17-fe7c-4b81-95a4-0febc20cb063",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "dd17c7dc-11d4-4066-b1a2-476b450959ae",
+            "name": "Create Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/tools",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ tool_config: { type:\"webhook\", name:\"create_claim_case\", description:\"Create the claim (Schadenmeldung) case in the back-office and return the Pega case number. Call once, after you have at least the policy number, the name, what happened, the claim type and the date.\", response_timeout_secs:20, api_schema: { url:\"https://ai-process.app.n8n.cloud/webhook/vplus-claim-create\", method:\"POST\", content_type:\"application/json\", request_body_schema: { type:\"object\", required:[\"policy_number\"], properties: { policy_number:{type:\"string\",description:\"Polizzennummer\"}, full_name:{type:\"string\",description:\"Caller full name\"}, phone:{type:\"string\",description:\"Caller mobile phone digits\"}, email:{type:\"string\",description:\"Caller email if given\"}, loss_type:{type:\"string\",description:\"Claim type e.g. Kfz-Unfall, Wasserschaden, Diebstahl, Haftpflicht, Ablebensfall\"}, date_of_loss:{type:\"string\",description:\"When it happened\"}, location:{type:\"string\",description:\"Where it happened\"}, description:{type:\"string\",description:\"What happened (Hergang)\"}, injuries:{type:\"string\",description:\"People injured ja/nein\"}, third_party:{type:\"string\",description:\"Third parties involved\"}, estimated_amount:{type:\"string\",description:\"Estimated loss amount if known\"} } } } } }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "e927f18d-de01-49a4-9d34-277185e8341e",
+            "name": "Build Agent",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar toolId = b.id || (b.tool_config && b.tool_config.id) || null;\nvar PROMPT = \"You are V+ Versicherung Schadenmeldung, a calm, efficient bilingual claims-intake assistant for an Austrian insurer. Speak GERMAN by default with correct umlauts ä ö ü ß; switch to English only if the customer does. ONE question at a time, short business-like turns, no small talk. [PURPOSE] You take a single generic claim of ANY type - Kfz, Haushalt, Haftpflicht, Rechtsschutz, Leben or anything else. You do NOT qualify the claim, you do NOT assess coverage, you do NOT look up the policy yourself. Just capture the facts; everything else happens later in the workflow. [POLICY] Ask for the Polizzennummer first. Acknowledge it warmly as if found: Danke, ich habe Ihre Polizze. Do not invent any policy details. [COLLECT one at a time] 1) Polizzennummer. 2) Name. 3) Telefonnummer, read it back once. 4) Was ist passiert (Hergang, kurz). 5) Welche Art von Schaden. 6) Wann ist es passiert (Datum). 7) Wo ist es passiert (Ort). 8) Wurden Personen verletzt (ja/nein). 9) Sind Dritte beteiligt (ja/nein, kurz). 10) Geschätzte Schadenhöhe, falls bekannt (optional). [CREATE CASE] Once you have at least Polizzennummer, Name, Hergang, Schadenart and Datum, call the tool create_claim_case with everything you collected. Do not announce it; just call it. [READ BACK] The tool returns a case_id. Say: Vielen Dank, Ihr Schaden wurde aufgenommen. Ihre Fallnummer lautet CASE_ID. Read the case_id clearly. If the tool returns no case_id or an error, say a colleague will follow up and still thank them; never invent a number. [CLOSE] Wir melden uns in Kürze bei Ihnen. Ich wünsche Ihnen alles Gute. [RULES] Never give coverage, legal or payout promises. Never refuse. Never mention internal systems.\";\nvar dc = {\n  policy_number:{type:\"string\",description:\"Polizzennummer provided by the caller\"},\n  full_name:{type:\"string\",description:\"Caller full name\"},\n  phone:{type:\"string\",description:\"Caller mobile phone, digits only\"},\n  email:{type:\"string\",description:\"Caller email if given\"},\n  loss_type:{type:\"string\",description:\"Type of claim\"},\n  date_of_loss:{type:\"string\",description:\"When the loss happened\"},\n  location:{type:\"string\",description:\"Where the loss happened\"},\n  description:{type:\"string\",description:\"What happened (Hergang)\"},\n  injuries:{type:\"string\",description:\"Were people injured (ja/nein)\"},\n  third_party:{type:\"string\",description:\"Third parties involved\"},\n  estimated_amount:{type:\"string\",description:\"Estimated loss amount if known\"},\n  conversation_summary:{type:\"string\",description:\"Short summary of the claim\"}\n};\nvar body = {\n  name: \"V+ Versicherung — Schadenmeldung\",\n  conversation_config: {\n    tts: { model_id: \"eleven_multilingual_v2\", voice_id: \"BtJhEZecBTSpKQ8EHRCJ\" },\n    agent: {\n      language: \"de\",\n      first_message: \"Hallo, hier ist V+ Versicherung, Schadenmeldung. Ich nehme Ihren Schaden gerne auf. Wie lautet Ihre Polizzennummer?\",\n      prompt: { prompt: PROMPT, llm: \"gemini-2.5-flash\", temperature: 0, tool_ids: toolId ? [toolId] : [] }\n    }\n  },\n  platform_settings: { data_collection: dc }\n};\nreturn [{ json: { toolId: toolId, tool_status:(r.statusCode!==undefined?r.statusCode:null), body: body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "1d1cbd56-44f6-4c85-ad39-3afbf27bf787",
+            "name": "Create Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/create",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "a5cb6926-a2f2-43e6-9079-1d8cd81d9a36",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar ba = $('Build Agent').first().json;\nreturn [{ json: { tool_id: ba.toolId, tool_status: ba.tool_status, agent_status:(r.statusCode!==undefined?r.statusCode:null), agent_id: (b.agent_id||null), err: (b.detail||null) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Create Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Build Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
