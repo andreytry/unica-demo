@@ -1,0 +1,64 @@
+{
+    "name": "ElevenLabs — Restore Data Collection (retail labels)",
+    "nodes": [
+        {
+            "id": "9bf92a6f-bdde-45a8-91a1-4fc5584a3b44",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "68929910-274e-42a3-91bc-9f1fda03ed73",
+            "name": "Restore Data Collection",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                },
+                "jsonBody": "{\n  \"platform_settings\": {\n    \"data_collection\": {\n      \"full_name\": { \"type\": \"string\", \"description\": \"Customer full legal name\" },\n      \"mobile_phone\": { \"type\": \"string\", \"description\": \"Customer mobile phone number, digits only\" },\n      \"email\": { \"type\": \"string\", \"description\": \"Customer email address\" },\n      \"postal_code\": { \"type\": \"string\", \"description\": \"Customer ZIP or postal code\" },\n      \"date_of_birth\": { \"type\": \"string\", \"description\": \"Customer date of birth (YYYY-MM-DD)\" },\n      \"preferred_language\": { \"type\": \"string\", \"description\": \"Preferred language: German or English\" },\n      \"line_of_business\": { \"type\": \"string\", \"description\": \"One of the five Unica retail lines: car, liability, home_contents, legal, or life\" },\n      \"lead_intent\": { \"type\": \"string\", \"description\": \"New, Switch, Price-shop, Renewal, or Mandatory\" },\n      \"effective_date\": { \"type\": \"string\", \"description\": \"Desired coverage effective date\" },\n      \"budget\": { \"type\": \"string\", \"description\": \"Stated budget if provided\" },\n      \"current_carrier\": { \"type\": \"string\", \"description\": \"Current insurance carrier if switching\" },\n      \"current_premium\": { \"type\": \"string\", \"description\": \"Current premium if provided\" },\n      \"policy_expiration\": { \"type\": \"string\", \"description\": \"Current policy expiration date\" },\n      \"prior_claims\": { \"type\": \"string\", \"description\": \"Claims in last 5 years\" },\n      \"prior_lapse\": { \"type\": \"string\", \"description\": \"Any lapse in prior coverage\" },\n      \"consent_tcpa\": { \"type\": \"boolean\", \"description\": \"True if caller gave TCPA contact consent\" },\n      \"consent_recording\": { \"type\": \"boolean\", \"description\": \"True if caller consented to recording\" },\n      \"indicative_quote\": { \"type\": \"string\", \"description\": \"Indicative price range quoted, product and line\" },\n      \"line_specific_details\": { \"type\": \"string\", \"description\": \"All line-specific details captured\" },\n      \"conversation_summary\": { \"type\": \"string\", \"description\": \"Concise summary of the conversation and what the customer wants\" },\n      \"missing_mandatory_fields\": { \"type\": \"string\", \"description\": \"List of any mandatory fields not captured\" }\n    }\n  }\n}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Restore Data Collection",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
