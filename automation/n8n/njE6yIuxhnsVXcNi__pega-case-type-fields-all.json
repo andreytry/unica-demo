@@ -1,0 +1,245 @@
+{
+    "name": "Pega Case Type Fields (all)",
+    "nodes": [
+        {
+            "id": "56dc853e-936d-4024-a710-0f419051e2db",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "25e70938-ff1b-4df0-a56c-01b8bf3f5cb9",
+            "name": "LeadIntake fields",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes/MyOrg-CILM-Work-LeadIntake",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "132caefc-5077-480a-8766-02605c50f060",
+            "name": "CarInsurance fields",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes/MyOrg-CILM-Work-CarInsurance",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "0737fb17-c01f-47f3-9b1d-278edb905ab2",
+            "name": "PrivateLiability fields",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes/MyOrg-CILM-Work-PrivateLiability",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "94ace9c0-8541-4df2-8782-c176ddba1913",
+            "name": "HomeContents fields",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes/MyOrg-CILM-Work-HomeContents",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "805b4686-7a8f-451d-ac64-ec374891a5f3",
+            "name": "LegalExpenses fields",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                1120,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes/MyOrg-CILM-Work-LegalExpenses",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "968cbaa5-0c3c-43a7-8621-709c31bdf66f",
+            "name": "LifeInsurance fields",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                1344,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes/MyOrg-CILM-Work-LifeInsurance",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "LeadIntake fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "LeadIntake fields": {
+            "main": [
+                [
+                    {
+                        "node": "CarInsurance fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "CarInsurance fields": {
+            "main": [
+                [
+                    {
+                        "node": "PrivateLiability fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "HomeContents fields": {
+            "main": [
+                [
+                    {
+                        "node": "LegalExpenses fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "LegalExpenses fields": {
+            "main": [
+                [
+                    {
+                        "node": "LifeInsurance fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "PrivateLiability fields": {
+            "main": [
+                [
+                    {
+                        "node": "HomeContents fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
