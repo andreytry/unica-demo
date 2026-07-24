@@ -1,0 +1,92 @@
+{
+    "name": "Unica — Pega list case types",
+    "nodes": [
+        {
+            "id": "b5c2dadb-773a-41f1-88b6-5af49e0e80cf",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "d2582fed-893a-46f1-91a1-ec9cb79e69ed",
+            "name": "List Case Types",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes",
+                "method": "GET",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic YWRtaW5AY2FsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "f35210a7-3058-4cd5-8766-147ade75c338",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json;\nreturn [{ json: { status: (r.statusCode!==undefined? r.statusCode : null), body: (r.body!==undefined? r.body : r) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "List Case Types",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "List Case Types": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
