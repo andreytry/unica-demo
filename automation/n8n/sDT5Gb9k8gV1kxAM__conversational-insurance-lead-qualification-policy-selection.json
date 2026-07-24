@@ -1,0 +1,194 @@
+{
+    "name": "Conversational Insurance — Lead Qualification & Policy Selection",
+    "nodes": [
+        {
+            "id": "3a857f63-e8b0-4e46-9d52-3b8f32f7d0f4",
+            "name": "Lead Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                0,
+                112
+            ],
+            "webhookId": "01060536-055e-488d-8f80-ced3a109f708",
+            "parameters": {
+                "path": "unica-qualify",
+                "httpMethod": "POST",
+                "responseMode": "responseNode"
+            },
+            "typeVersion": 2.1
+        },
+        {
+            "id": "c5fca889-fba5-4c0c-bced-db2b597f0d13",
+            "name": "Validate & Load Catalog",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                112
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "const b = ($input.first().json.body) || $input.first().json || {};\nfunction pick(){ for (var i=0;i<arguments.length;i++){ var v=arguments[i]; if(v!==undefined&&v!==null&&v!=='') return v; } return undefined; }\nvar rawLine = String(pick(b.line_of_business, b.line, b.insurance_type, '')).toLowerCase();\nvar lineMap = { kfz:'car', auto:'car', car:'car', pkw:'car', privathaftpflicht:'liability', haftpflichtversicherung:'liability', private_liability:'liability', liability:'liability', haushalt:'home_contents', hausrat:'home_contents', household:'home_contents', contents:'home_contents', home_contents:'home_contents', rechtsschutz:'legal', legal:'legal', legal_protection:'legal', leben:'life', life:'life', risikoleben:'life', vorsorge:'life' };\nvar line = lineMap[rawLine] || 'other';\nvar CATALOG = [\n {ProductCode:'CAR-LIAB-STD',LineOfBusiness:'car',ProductName:'Unica Kfz Haftpflicht',TargetSegment:'Standard private drivers, liability-only',EligibilityRules:{min_driver_age:18},indicative_base:480},\n {ProductCode:'CAR-TK-COMFORT',LineOfBusiness:'car',ProductName:'Unica Kfz Komfort (Haftpflicht + Teilkasko)',TargetSegment:'Mid-value vehicles, partial cover',EligibilityRules:{min_driver_age:21,max_vehicle_age_years:12},indicative_base:760},\n {ProductCode:'CAR-VK-PREMIUM',LineOfBusiness:'car',ProductName:'Unica Kfz Premium (Haftpflicht + Vollkasko)',TargetSegment:'New/financed vehicles, full protection',EligibilityRules:{min_driver_age:23,max_vehicle_age_years:8},indicative_base:1180},\n {ProductCode:'LIAB-SINGLE',LineOfBusiness:'liability',ProductName:'Unica Privathaftpflicht Single',TargetSegment:'Single private individual',EligibilityRules:{household:'single'},indicative_base:70},\n {ProductCode:'LIAB-FAMILY',LineOfBusiness:'liability',ProductName:'Unica Privathaftpflicht Familie',TargetSegment:'Families / couples',EligibilityRules:{household:'family'},indicative_base:95},\n {ProductCode:'HC-STD',LineOfBusiness:'home_contents',ProductName:'Unica Haushalt',TargetSegment:'Renters and owners insuring contents',EligibilityRules:{occupancy:['owner','tenant']},indicative_base:0.0016},\n {ProductCode:'HC-PLUS',LineOfBusiness:'home_contents',ProductName:'Unica Haushalt Plus (inkl. Glas & Fahrrad)',TargetSegment:'Higher-value contents, extra perils',EligibilityRules:{occupancy:['owner','tenant']},indicative_base:0.0022},\n {ProductCode:'LEGAL-PRIVATE',LineOfBusiness:'legal',ProductName:'Unica Privat-Rechtsschutz',TargetSegment:'Private legal protection',EligibilityRules:{},indicative_base:230},\n {ProductCode:'LEGAL-COMBO',LineOfBusiness:'legal',ProductName:'Unica Rechtsschutz Kombi (Privat + Verkehr + Wohnen)',TargetSegment:'Comprehensive legal protection',EligibilityRules:{},indicative_base:360},\n {ProductCode:'LIFE-TERM-STD',LineOfBusiness:'life',ProductName:'Unica Risikoleben (Term)',TargetSegment:'Income/family protection, fixed term',EligibilityRules:{min_age:18,max_age:65},indicative_base:0.0009},\n {ProductCode:'LIFE-VORSORGE',LineOfBusiness:'life',ProductName:'Unica Leben Vorsorge (Erleben)',TargetSegment:'Long-term provision + cash value',EligibilityRules:{min_age:18,max_age:60},indicative_base:0.0021}\n];\nvar eligible = CATALOG.filter(function(p){ return p.LineOfBusiness === line; });\nvar lead = { name: pick(b.name,b.full_name), phone: pick(b.phone,b.phone_number), email: b.email, region: pick(b.region,'land'), driver_age: b.driver_age, power_kw: b.power_kw, coverage: pick(b.coverage,'haftpflicht'), bonus_malus: b.bonus_malus, household: pick(b.household,b.household_size,'single'), contents_value: pick(b.contents_value,b.sum_insured), sum_assured: pick(b.sum_assured,b.coverage_amount), term_years: b.term_years, tobacco: b.tobacco, consent: pick(b.consent_recording,b.consent,false) };\nvar slim = eligible.map(function(p){ return {ProductCode:p.ProductCode,ProductName:p.ProductName,TargetSegment:p.TargetSegment,EligibilityRules:p.EligibilityRules}; });\nvar prompt = 'Lead JSON: ' + JSON.stringify(lead) + ' || Eligible products JSON: ' + JSON.stringify(slim) + ' || Task: choose the single best ProductCode for this retail lead. If mandatory info is missing or two products fit equally, lower confidence and list missing_fields. Reply with strict JSON only.';\nreturn [{ json: { line: line, lead: lead, eligible: eligible, llm_prompt: prompt } }];",
+                "language": "javaScript"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "1c176e9f-6ee4-470c-83cc-e00de2156de2",
+            "name": "Qualify Lead (LLM)",
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "position": [
+                448,
+                112
+            ],
+            "parameters": {
+                "text": "={{ $json.llm_prompt }}",
+                "options": {
+                    "systemMessage": "You are an insurance policy-selection engine. Given a lead and a list of eligible products, choose the single best ProductCode. Be conservative: if mandatory info is missing or more than one product fits equally well, lower the confidence and list the missing fields. Write the rationale as one short sentence in the language of the lead (German or English). Output only the JSON."
+                },
+                "promptType": "define",
+                "hasOutputParser": true
+            },
+            "typeVersion": 3.1
+        },
+        {
+            "id": "e8427633-969f-415f-9d9d-b7fca3299dc4",
+            "name": "OpenAI",
+            "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+            "position": [
+                464,
+                336
+            ],
+            "parameters": {
+                "model": {
+                    "__rl": true,
+                    "mode": "list",
+                    "value": "gpt-5-mini"
+                },
+                "options": {
+                    "temperature": 0.1
+                }
+            },
+            "credentials": {
+                "openAiApi": {
+                    "id": "FvPJm03Y9MaN0nwP",
+                    "name": "OpenAi account"
+                }
+            },
+            "typeVersion": 1.3
+        },
+        {
+            "id": "7d14a29f-0e2a-48ba-908a-4a703eed7154",
+            "name": "Qualification Schema",
+            "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+            "position": [
+                592,
+                336
+            ],
+            "parameters": {
+                "schemaType": "fromJson",
+                "jsonSchemaExample": "{ \"selected_product_code\": \"CAR-VK-PREMIUM\", \"confidence\": 0.86, \"lead_score\": 72, \"rationale\": \"Neuwagen, finanziert - Vollkasko passend.\", \"missing_fields\": [] }"
+            },
+            "typeVersion": 1.3
+        },
+        {
+            "id": "b491bae6-ef27-469d-8657-11e67dc7a06b",
+            "name": "Decide & Quote",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                800,
+                112
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "var out = $json.output || $json || {};\nvar prep = $('Validate & Load Catalog').first().json;\nvar eligible = prep.eligible || [];\nvar lead = prep.lead || {};\nvar line = prep.line;\nvar code = out.selected_product_code || out.ProductCode || (eligible[0] && eligible[0].ProductCode);\nvar product = eligible.filter(function(p){ return p.ProductCode===code; })[0] || eligible[0] || null;\nfunction f(x,d){ return (x===undefined||x===null||x==='')?d:Number(x); }\nvar mid = 0;\nif (product){\n  var base = product.indicative_base;\n  if (line==='car'){\n    var a=f(lead.driver_age,40); var ageF = a<23?1.45:(a<30?1.18:(a<65?1.0:1.12));\n    var powF = 1 + Math.max(0,(f(lead.power_kw,85)-70))*0.006;\n    var regF = ({wien:1.15,graz:1.06,linz:1.04,land:0.95})[String(lead.region||'land')] || 1.0;\n    var bm = Math.max(0.5,Math.min(1.8,f(lead.bonus_malus,1.0)));\n    mid = base*ageF*powF*regF*bm;\n  } else if (line==='liability'){\n    mid = base;\n  } else if (line==='home_contents'){\n    mid = f(lead.contents_value,40000)*base;\n  } else if (line==='legal'){\n    mid = base;\n  } else if (line==='life'){\n    var tob = lead.tobacco ? 1.6 : 1.0; mid = f(lead.sum_assured,100000)*base*tob;\n  } else { mid = base; }\n}\nvar low = Math.round(mid*0.82/10)*10, high = Math.round(mid*1.18/10)*10;\nif (product && low < 10) low = 10;\nvar conf = Number(out.confidence!==undefined?out.confidence:0.7);\nvar missing = out.missing_fields || [];\nvar status = 'NeedsReview';\nif (!product) status='Disqualified';\nelse if (conf>=0.8 && (!missing || missing.length===0)) status='Qualified';\nvar resp = {\n  status: status,\n  line: line,\n  recommended_product: product?{ProductCode:product.ProductCode,ProductName:product.ProductName}:null,\n  indicative_range: product?{low:low,high:high,currency:'EUR',per:'year'}:null,\n  rationale: out.rationale || (product?'':'Line not offered for retail (only car, liability, home_contents, legal, life).'),\n  lead_score: (out.lead_score!==undefined?out.lead_score:null),\n  confidence: conf,\n  missing_fields: missing,\n  next_step: status==='Qualified'?'offer_consultation_booking':(status==='Disqualified'?'inform_not_offered':'human_review'),\n  disclaimer: 'Indikativer Richtwert, kein verbindliches Angebot. Ein Berater prueft den finalen Tarif.'\n};\nreturn [{ json: resp }];",
+                "language": "javaScript"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "44d24b02-7106-46b0-ac05-a8dc895f7b54",
+            "name": "Respond to Agent",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "position": [
+                1024,
+                112
+            ],
+            "parameters": {
+                "respondWith": "firstIncomingItem"
+            },
+            "typeVersion": 1.5
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "OpenAI": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Qualify Lead (LLM)",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Lead Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Validate & Load Catalog",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Decide & Quote": {
+            "main": [
+                [
+                    {
+                        "node": "Respond to Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Qualify Lead (LLM)": {
+            "main": [
+                [
+                    {
+                        "node": "Decide & Quote",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Qualification Schema": {
+            "ai_outputParser": [
+                [
+                    {
+                        "node": "Qualify Lead (LLM)",
+                        "type": "ai_outputParser",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Validate & Load Catalog": {
+            "main": [
+                [
+                    {
+                        "node": "Qualify Lead (LLM)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
