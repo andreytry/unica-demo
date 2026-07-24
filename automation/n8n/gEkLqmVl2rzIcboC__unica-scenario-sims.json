@@ -1,0 +1,140 @@
+{
+    "name": "Unica — scenario sims",
+    "nodes": [
+        {
+            "id": "7e7ee18b-a755-47ce-98f5-3f6bb501fa9a",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "73382fe9-9f67-4cf3-bff8-92aad3382158",
+            "name": "Build Personas",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar personas = [\n {label:\"Life Risikoleben flow\", persona:\"You are a German speaking customer wanting Lebensversicherung, specifically Risikoleben. Reply briefly. Provide when asked: Alter 35, Versicherungssumme 200000 Euro, Laufzeit 25 Jahre, Nichtraucher. You want the estimate now, no specialist. Name Anna Berger, phone 0676 1112223. After the price and closing, say Danke and end.\"},\n {label:\"Haushalt Plus flow\", persona:\"You are a German speaking customer wanting Haushaltsversicherung. Reply briefly. Provide when asked: Versicherungssumme 50000 Euro, Ort Graz, Tarif Plus, Alarmanlage ja. You want the estimate now. Name Peter Mayer, phone 0660 9998887. After the price and closing, say Danke and end.\"},\n {label:\"Krankenversicherung handoff\", persona:\"You are a German speaking customer asking for Krankenversicherung (health insurance). Reply briefly. When the agent says it is handled by a specialist and asks for your details, agree and give name Lukas Huber, phone 0664 5556667. Then say Danke and end.\"},\n {label:\"Kfz Haftpflicht only flow\", persona:\"You are a German speaking customer wanting Kfz insurance, only Haftpflicht, no Kasko. Reply briefly. Provide when asked: nur Haftpflicht, Alter 60, 66 kW, Ort Linz, ein Lenker, 20 schadenfreie Jahre. You want the estimate now. Name Eva Gruber, phone 0676 3334445. After the price and closing, say Danke and end.\"}\n];\nreturn personas.map(function(p){ return { json: p }; });\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "5e530b38-be7f-461e-8367-6a2300a0a54c",
+            "name": "Simulate",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6/simulate-conversation",
+                "method": "POST",
+                "options": {
+                    "timeout": 200000
+                },
+                "jsonBody": "={{ JSON.stringify({ simulation_specification: { simulated_user_config: { language: \"de\", prompt: { prompt: $json.persona } } }, new_turns_limit: 24 }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "fc900ec2-ce40-4fd4-8893-cdd6612b5c2c",
+            "name": "Extract",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar items=$input.all(); var out=[];\nfor(var r=0;r<items.length;r++){\n var conv=items[r].json.simulated_conversation||[];\n var agentQ=[], tools=[];\n for(var i=0;i<conv.length;i++){ var t=conv[i]; if(t.role===\"agent\" && t.message) agentQ.push(t.message); if(t.tool_calls){ for(var j=0;j<t.tool_calls.length;j++){ var p={}; try{p=JSON.parse(t.tool_calls[j].params_as_json||\"{}\");}catch(e){} tools.push(p); } } }\n out.push({ json: { idx:r+1, agent_turns:agentQ, tool_params:tools } });\n}\nreturn out;\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "00303a5e-6659-4315-9f55-13255b7914e8",
+            "name": "Collect",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "return [{ json: { runs: $input.all().map(function(i){ return i.json; }) } }];"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Build Personas",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract": {
+            "main": [
+                [
+                    {
+                        "node": "Collect",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Simulate": {
+            "main": [
+                [
+                    {
+                        "node": "Extract",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Personas": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
