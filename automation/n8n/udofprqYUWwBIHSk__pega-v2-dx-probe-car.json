@@ -1,0 +1,60 @@
+{
+    "name": "Pega v2 DX probe (Car)",
+    "nodes": [
+        {
+            "id": "c4d99c6a-ed07-43c6-be7a-61b11ac8d947",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "cd431df3-e2a3-4a32-9ce2-6e641b4d02cd",
+            "name": "v2 Car fields",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/application/v2/casetypes/MyOrg-CILM-Work-CarInsurance",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "v2 Car fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
