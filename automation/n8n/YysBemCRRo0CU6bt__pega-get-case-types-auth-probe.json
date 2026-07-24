@@ -1,0 +1,58 @@
+{
+    "name": "Pega — Get Case Types (auth probe)",
+    "nodes": [
+        {
+            "id": "b4cafa19-e445-4728-9d58-b4c8ae939bab",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "fa9325c8-ac29-4429-b54f-540b0acdbc2a",
+            "name": "Pega Get Case Types",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/application/v2/casetypes",
+                "method": "GET",
+                "options": {
+                },
+                "authentication": "genericCredentialType",
+                "genericAuthType": "oAuth2Api"
+            },
+            "credentials": {
+                "oAuth2Api": {
+                    "id": "H6wUWsP4WqotwAwc",
+                    "name": "Unnamed credential"
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Pega Get Case Types",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
