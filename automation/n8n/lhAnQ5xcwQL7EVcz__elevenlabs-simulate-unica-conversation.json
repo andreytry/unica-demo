@@ -1,0 +1,74 @@
+{
+    "name": "ElevenLabs Simulate Unica Conversation",
+    "nodes": [
+        {
+            "id": "857e5d43-d567-4e74-a0d0-73f0bc2bc4af",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "1756e530-7b58-4456-8c77-cc89be5b3f77",
+            "name": "Simulate Conversation",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6/simulate-conversation",
+                "method": "POST",
+                "options": {
+                    "timeout": 290000
+                },
+                "jsonBody": {
+                    "simulation_specification": {
+                        "simulated_user_config": {
+                            "prompt": {
+                                "prompt": "Du bist ein Kunde, der eine Kfz-Versicherung (Haftpflicht) abschliessen moechte. Antworte kurz auf jede Frage des Agenten. Deine Daten: Leistung 90 kW, PLZ 1010, 5 schadenfreie Jahre, 1 Lenker. Wenn nach Name und Handynummer gefragt wird: Name Test Mueller, Handy +436601234567, E-Mail test.mueller@example.at. Gib die Daten an und beende danach das Gespraech hoeflich."
+                            },
+                            "language": "de"
+                        }
+                    }
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate Conversation",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
