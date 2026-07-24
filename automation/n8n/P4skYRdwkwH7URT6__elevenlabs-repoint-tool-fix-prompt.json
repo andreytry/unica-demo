@@ -1,0 +1,105 @@
+{
+    "name": "ElevenLabs — Repoint tool + fix prompt",
+    "nodes": [
+        {
+            "id": "18fcd06c-4dce-4b24-9e4e-3a881f681e55",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "29121c81-7911-4ca6-a108-68eb5a34ef67",
+            "name": "Repoint Tool URL",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/tools/tool_9701kverhzztffcasbn13kkw225k",
+                "method": "PATCH",
+                "options": {
+                },
+                "jsonBody": "{\n  \"tool_config\": {\n    \"type\": \"webhook\",\n    \"name\": \"get_indicative_quote\",\n    \"description\": \"Select the best Unica retail product and return an indicative annual price range. Call once the line_of_business and that line mandatory fields are known.\",\n    \"response_timeout_secs\": 20,\n    \"api_schema\": {\n      \"url\": \"https://ai-process.app.n8n.cloud/webhook/unica-quote\",\n      \"method\": \"POST\",\n      \"request_body_schema\": {\n        \"type\": \"object\",\n        \"required\": [\"line_of_business\"],\n        \"properties\": {\n          \"line_of_business\": { \"type\": \"string\", \"description\": \"Insurance type the caller names, German or English, e.g. Kfz, Haftpflicht, Haushalt, Rechtsschutz, Lebensversicherung\" },\n          \"name\": { \"type\": \"string\", \"description\": \"Caller name\" },\n          \"phone\": { \"type\": \"string\", \"description\": \"Caller phone number\" },\n          \"email\": { \"type\": \"string\", \"description\": \"Caller email\" },\n          \"region\": { \"type\": \"string\", \"description\": \"wien, graz, linz or land\" },\n          \"coverage\": { \"type\": \"string\", \"description\": \"car: haftpflicht, teilkasko or vollkasko; home: plus for premium; life: vorsorge for savings\" },\n          \"driver_age\": { \"type\": \"number\", \"description\": \"car: age of main driver\" },\n          \"power_kw\": { \"type\": \"number\", \"description\": \"car: engine power in kW\" },\n          \"bonus_malus\": { \"type\": \"number\", \"description\": \"car: 0.5 best to 1.8 worst\" },\n          \"household\": { \"type\": \"string\", \"description\": \"liability: single or family\" },\n          \"contents_value\": { \"type\": \"number\", \"description\": \"home_contents: sum insured in EUR\" },\n          \"sum_assured\": { \"type\": \"number\", \"description\": \"life: cover amount in EUR\" },\n          \"term_years\": { \"type\": \"number\", \"description\": \"life: term length in years\" },\n          \"tobacco\": { \"type\": \"boolean\", \"description\": \"life: is the person a smoker\" }\n        }\n      }\n    }\n  }\n}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "1d7b3e5b-ff51-450e-a62b-6a6e5c3e284b",
+            "name": "PATCH Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                },
+                "jsonBody": "{\n  \"conversation_config\": {\n    \"agent\": {\n      \"first_message\": \"Hallo, hier ist Unica. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie? (For English, just say English.)\",\n      \"prompt\": {\n        \"prompt\": \"You are Unica, a professional and concise bilingual insurance assistant for retail customers in Austria. You speak GERMAN by default. Only if the customer writes or speaks English, or says English, switch to English and continue fully in English. Keep every turn short and business-like; one question at a time; no small talk. [GREETING] Your first message already greets and asks which insurance they want. Never say things like I am your assistant or I can help you find the best insurance. Do not list the options. Just wait for the type. [WHEN THE CUSTOMER NAMES A TYPE] Give the estimate disclaimer ONCE, briefly: Bitte beachten Sie, die Preise sind Schaetzungen und nicht der endgueltige Preis; das verbindliche Angebot erhalten Sie per E-Mail. Then continue. [SUPPORTED LINES] car (Kfz), liability (Haftpflicht), home_contents (Haushalt or Hausrat), legal (Rechtsschutz), life (Lebensversicherung). Lebensversicherung IS supported. [NOT SUPPORTED] If the customer asks for anything else, for example Krankenversicherung, Reise, or a business or commercial cover, say immediately: Das wird aktuell leider nicht angeboten, aber ich leite Sie an einen Spezialisten weiter, der Sie zurueckruft. Then take the name and phone number for the callback and close. [COLLECT THE MINIMUM, THEN CALL THE TOOL] Ask only the few fields the chosen line needs, one at a time. car: coverage (Haftpflicht, Teilkasko or Vollkasko) and the driver age. liability: single or family household. home_contents: the sum insured in euros. legal: nothing extra. life: the cover sum in euros, optionally the term and whether they smoke. As soon as you have the line and those fields, call the get_indicative_quote tool with what you collected. [GIVE THE RESULT] Do not announce that you are calculating. Never say things like one moment or I have everything I need. Just call the tool, then say the result in one short sentence: the product and the range as X bis Y Euro pro Jahr, then add: das ist ein Richtwert, das verbindliche Angebot kommt per E-Mail. [IF FIELDS MISSING] If the tool returns missing_fields, ask only for those, then call the tool again. Never state a number the tool did not return. [THE CUSTOMER IS RIGHT] If the customer gives you values or asks you to just estimate with what they gave, do it: use their numbers, get the quote, and confirm the inputs back in one short line. Do not over-ask. [CONTACT] Ask for the name and a phone number; the phone is enough and easier than email, and we can send the offer link by SMS. Email is optional. Read the phone back once to confirm. [CLOSE] One short summary: type, product, range, and that the offer follows by E-Mail or SMS. Then end politely. [RULES] Only state prices the tool returns. Never give binding, legal or tax advice. Case creation is out of scope.\",\n        \"tool_ids\": [\"tool_9701kverhzztffcasbn13kkw225k\"]\n      }\n    },\n    \"language_presets\": {\n      \"de\": {\n        \"overrides\": {\n          \"agent\": {\n            \"first_message\": \"Hallo, hier ist Unica. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie?\"\n          }\n        }\n      }\n    }\n  }\n}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Repoint Tool URL",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Repoint Tool URL": {
+            "main": [
+                [
+                    {
+                        "node": "PATCH Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
