@@ -1,0 +1,412 @@
+{
+    "name": "V+ Versicherung — final rebrand",
+    "nodes": [
+        {
+            "id": "ff5e4c55-2c89-4a36-bdfe-da1a68fb3f89",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "947172ee-853b-49d9-8758-79cf3d10193e",
+            "name": "Get KB",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/knowledge-base/O3R4abqWWBN89wv8eIxl/content",
+                "method": "GET",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true,
+                            "responseFormat": "text"
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "b33a68ab-478f-4317-b0d8-0163e6b8a989",
+            "name": "Prep KB",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var raw = (r.body!==undefined? r.body : r);\nif (typeof raw !== \"string\") raw = JSON.stringify(raw);\nvar CLEAN = raw.replace(/VPLUS/g, \"V+ VERSICHERUNG\").replace(/VPlus/g, \"V+ Versicherung\");\nreturn [{ json: { name: \"V+ Versicherung Produkt- und Deckungskatalog (DE)\", text: CLEAN, residual_vplus: (CLEAN.match(/vplus/gi)||[]).length } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "09f081b4-6c02-4a7d-85bb-e8dc16cf9fd4",
+            "name": "Create KB",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/knowledge-base/text",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ name: $json.name, text: $json.text }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "63d03e8d-d4f3-401f-acf4-a0ea94bf6756",
+            "name": "Build Agent",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar newId = b.id || null;\nvar PROMPT = \"You are V+ Versicherung, a professional, concise bilingual insurance assistant for retail customers in Austria. Speak GERMAN by default; switch to English only if the customer does. Short, business-like turns; ONE question at a time; no small talk; never list all options. [ALWAYS HELP - NEVER REFUSE, NEVER HAND OFF] Never say you cannot help, that you do not know, or that you are limited. Never offer to transfer the customer or pass them to a specialist or colleague - there is no transfer and no specialist. Whatever insurance the customer wants, you simply take their details and proceed. [DISCLAIMER FIRST] As soon as the customer names an insurance type, say once, briefly: Die folgenden Preise sind nur Vorab-Schaetzungen, nicht der endgueltige Preis. Ihr genaues, verbindliches Angebot erhalten Sie anschliessend per SMS. [SIMPLE PROCESS - ALWAYS THE SAME] 1) Find out which insurance and the key details for it, asking ONE question at a time. 2) If it is one of the five priced lines, call get_indicative_quote ONE time with mode precise and state the single preliminary number. 3) Take the customer name and mobile phone number. 4) Close warmly, repeating that this was preliminary and the exact binding offer follows by SMS. [FIVE PRICED LINES AND FIELDS] car (Kfz): Deckung haftpflicht/teilkasko/vollkasko, Leistung in kW, Ort oder PLZ, schadenfreie Jahre, Anzahl Lenker; for teilkasko or vollkasko also Fahrzeugwert, but NOT for haftpflicht. liability (Haftpflicht): Single oder Familie. home_contents (Haushalt or Hausrat): Versicherungssumme, Ort oder PLZ. legal (Rechtsschutz): Privat oder Kombi. life (Lebensversicherung): Alter, Summe, Laufzeit, ob die Person raucht. Ask all needed fields for the line, one at a time; do NOT say any price between questions. Only after you have them, call get_indicative_quote once with mode precise, then say: die unverbindliche Vorab-Praemie liegt bei ca. ESTIMATE Euro pro Jahr fuer PRODUKT. Only ever say the estimate the tool returns; never invent a number. [ANY OTHER INSURANCE] For anything not in the five lines, such as Krankenversicherung, Reise, Gewerbe, Tier or Unfall, do NOT call the tool and do NOT state a price. Briefly take the key details the customer mentions plus their name and phone, and tell them their exact offer will be prepared and sent by SMS. Never refuse and never mention a specialist. [PRODUKTWISSEN] You have a knowledge base with the full V+ Versicherung product and coverage catalogue: what each product includes, covered perils, limits, deductibles called Selbstbehalt and exclusions. When the customer asks what is included, covered or excluded, the Selbstbehalt, the limits, or the difference between products, answer specifically and accurately from that knowledge in one or two short sentences. Do not invent coverage that is not in the catalogue. [CONTACT AND CLOSE] Collect the name and a mobile phone number; email is optional. Read the phone back once. Then close warmly, for example: Vielen Dank, dass Sie sich fuer V+ Versicherung entschieden haben. Das war eine unverbindliche Vorab-Schaetzung; Ihr genaues Angebot erhalten Sie gleich per SMS. Ich wuensche Ihnen einen schoenen Tag. [NO FILLER] Do not announce that you are calculating; never say one moment; just call the tool and state the result. [RULES] Only state prices the tool returns. Never give binding, legal or tax advice.\";\nvar firstEN = \"Hallo, hier ist V+ Versicherung. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie? (For English, just say English.)\";\nvar firstDE = \"Hallo, hier ist V+ Versicherung. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie?\";\nvar body = {\n  name: \"V+ Versicherung — Lead Qualification\",\n  conversation_config: {\n    agent: {\n      first_message: firstEN,\n      prompt: { prompt: PROMPT, llm: \"gemini-2.5-flash\", temperature: 0, tool_ids: [\"tool_9701kverhzztffcasbn13kkw225k\"], knowledge_base: [ { type: \"text\", name: \"V+ Versicherung Produkt- und Deckungskatalog (DE)\", id: newId, usage_mode: \"prompt\" } ] }\n    },\n    language_presets: { de: { overrides: { asr: null, turn: null, tts: null, conversation: null, agent: { first_message: firstDE, language: null, max_conversation_duration_message: null, prompt: null } }, first_message_translation: null, soft_timeout_translation: null } }\n  }\n};\nreturn [{ json: { newId: newId, body: body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "dfc32446-2e4f-499e-9789-66271b487997",
+            "name": "Patch Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                1120,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "cabc8125-1a28-484b-bc1b-4a1693cee506",
+            "name": "Delete VPlus KB",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                1344,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/knowledge-base/O3R4abqWWBN89wv8eIxl",
+                "method": "DELETE",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "82345337-59d0-491b-a13a-c77304358e25",
+            "name": "Get Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                1568,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/tools/tool_9701kverhzztffcasbn13kkw225k",
+                "method": "GET",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "7f4ed58d-dabe-49ee-89da-51fafbe80bd5",
+            "name": "Build Tool",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                1792,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar tc = b.tool_config || {};\ntc.description = \"Return a V+ Versicherung pre-quote. Call with mode quick after one or two basics for a rough ballpark, then again with mode precise once more rating fields are collected. Returns estimate (single number), indicative_range, refine_with (fields that would sharpen it), status and missing_fields.\";\nreturn [{ json: { body: { tool_config: tc } } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "a205d6fe-5d31-4a67-8e3f-4ec04131e47c",
+            "name": "Patch Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                2016,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/tools/tool_9701kverhzztffcasbn13kkw225k",
+                "method": "PATCH",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "b85f3f46-c536-4ea3-8a26-c5c6d3930ae3",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                2240,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar tool = $json; var tb = (tool.body!==undefined? tool.body : tool);\nvar newId = $('Build Agent').first().json.newId;\nvar agent = $('Patch Agent').first().json; var ab = (agent.body!==undefined? agent.body: agent);\nvar del = $('Delete VPlus KB').first().json;\nvar name=\"\"; try{ name = ab.name; }catch(e){}\nvar toolDesc=\"\"; try{ toolDesc = tb.tool_config.description.slice(0,35); }catch(e){}\nreturn [{ json: { new_kb_id:newId, agent_name:name, agent_status:(agent.statusCode!==undefined?agent.statusCode:null), del_old_status:(del.statusCode!==undefined?del.statusCode:null), tool_status:(tool.statusCode!==undefined?tool.statusCode:null), tool_desc:toolDesc } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Get KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get KB": {
+            "main": [
+                [
+                    {
+                        "node": "Prep KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prep KB": {
+            "main": [
+                [
+                    {
+                        "node": "Create KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Build Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create KB": {
+            "main": [
+                [
+                    {
+                        "node": "Build Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Patch Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Patch Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Patch Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Patch Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Delete VPlus KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Delete VPlus KB": {
+            "main": [
+                [
+                    {
+                        "node": "Get Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
