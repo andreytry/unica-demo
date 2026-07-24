@@ -1,0 +1,158 @@
+{
+    "name": "Unica — Pega Lead intake (ElevenLabs post-call)",
+    "nodes": [
+        {
+            "id": "bc58abfc-1fbd-4452-a025-b319c827a4c2",
+            "name": "Post-call Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                0,
+                0
+            ],
+            "webhookId": "52986ec9-83da-4254-bb64-09b38928c806",
+            "parameters": {
+                "path": "pega-lead-intake",
+                "options": {
+                },
+                "httpMethod": "POST",
+                "responseMode": "responseNode"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "c45000e4-7fa0-4228-b9de-1d8bbd04bc6d",
+            "name": "Map to Pega",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "var b=$json.body||$json;var d=b.data||b;var dc=(d.analysis&&d.analysis.data_collection_results)||d.data_collection_results||{};\nfunction val(){for(var i=0;i<arguments.length;i++){var k=arguments[i];if(dc[k]&&dc[k].value!==undefined&&dc[k].value!==null&&dc[k].value!=='')return dc[k].value;if(d[k]!==undefined&&d[k]!==null&&d[k]!=='')return d[k];}return null;}\nfunction num(x){if(x===null||x===undefined)return null;var n=Number(String(x).replace(/[^0-9.]/g,''));return isNaN(n)?null:n;}\nfunction intg(x){var n=num(x);return n===null?null:Math.round(n);}\nfunction boolv(x){if(x===null)return null;var s=String(x).toLowerCase();return(s==='true'||s==='yes'||s==='ja'||s==='1'||s==='smoker'||s==='raucher');}\nvar convId=d.conversation_id||val('conversation_id','external_conversation_id')||('CONV-'+Date.now());\nvar line=(val('line_of_business','insurance_line','line','product')||'car').toString().toLowerCase();\nvar MAP={car:'LeadCar',auto:'LeadCar',kfz:'LeadCar',motor:'LeadCar',liability:'LeadLiability',haftpflicht:'LeadLiability',home:'LeadHomeContents',hausrat:'LeadHomeContents',home_contents:'LeadHomeContents',contents:'LeadHomeContents',haushalt:'LeadHomeContents',legal:'LeadLegal',rechtsschutz:'LeadLegal',life:'LeadLife',leben:'LeadLife',lebensversicherung:'LeadLife'};\nvar suffix=MAP[line]||'LeadCar';\nvar CASE_TYPE_ID='MyOrg-CILMConv-Work-'+suffix;\nvar channel=(d.metadata&&d.metadata.phone_call)?'Phone':'WebVoice';\nvar name=val('full_name','customer_name','lead_name','name');\nvar phone=val('mobile_phone','phone','mobile');\nvar quote=val('indicative_quote','quote','estimate','preliminary_premium');\nvar content={};\nfunction put(k,x){if(x!==null&&x!==undefined&&x!=='')content[k]=x;}\nvar parts=[];\nfunction addp(label,x){if(x!==null&&x!==undefined&&x!=='')parts.push(label+': '+x);}\nif(suffix==='LeadCar'){\nput('LeadCarName',name);put('VehicleMake',val('vehicle_make','car_make','make'));put('VehicleModel',val('vehicle_model','car_model','model'));put('VehicleVariant',val('vehicle_variant','variant','trim'));put('VehicleValue',num(val('vehicle_value','car_value')));put('FirstRegistrationYear',intg(val('first_registration_year','registration_year','year')));put('AnnualKilometers',intg(val('annual_kilometers','annual_mileage','mileage')));put('ClaimfreeYears',intg(val('claim_free_years','no_claims_years')));put('AccidentsInLast3Years',intg(val('accidents_last_3_years','accidents')));put('NumberOfDrivers',intg(val('number_of_drivers','drivers')));put('YoungestDriverAge',intg(val('youngest_driver_age')));put('LicenseYears',intg(val('license_years')));var nc=val('no_claims_protection');if(nc!==null)put('NoclaimsProtection',boolv(nc));put('CurrentInsurer',val('current_insurer','current_carrier'));put('CurrentPremium',num(val('current_premium')));put('Deductibles',num(val('deductible','deductibles')));put('GaragingPostalCode',val('garaging_postal_code','postal_code','zip'));put('ExternalConversationID',convId);put('SourceChannel',channel);\n}else if(suffix==='LeadLife'){\nput('LeadLifeName',name);put('InsuredAge',intg(val('insured_age','age')));put('CoverageSum',num(val('coverage_sum','sum_assured','sum_insured')));put('InsuredGender',val('insured_gender','gender'));var sm=val('insured_smoker','smoker','tobacco');if(sm!==null)put('InsuredSmokerStatus',boolv(sm));put('InsuredOccupation',val('insured_occupation','occupation'));put('InsuredHealthHistory',val('insured_health_history','health_history'));put('InsuredHeight',num(val('insured_height','height')));put('InsuredWeight',num(val('insured_weight','weight')));put('InsuredHobbies',val('insured_hobbies','hobbies'));put('Purpose',val('purpose'));put('InsuranceType',val('insurance_type')||'life');put('CurrentInsurer',val('current_insurer','current_carrier'));put('CurrentPremium',num(val('current_premium')));put('ExternalConversationID',convId);put('SourceChannel',channel);addp('Term years',val('term_years','term'));addp('Product',val('product_type','product'));\n}else if(suffix==='LeadLiability'){\nput('LeadLiabilityName',name);put('NumberOfAdults',intg(val('num_adults','number_of_adults','adults')));put('NumberOfChildren',intg(val('num_children','number_of_children','children')));put('CurrentInsurer',val('current_insurer','current_carrier'));put('CurrentPremium',num(val('current_premium')));addp('Household',val('household'));addp('Intent',val('intent','lead_intent'));\n}else if(suffix==='LeadHomeContents'){\nput('LeadHomeContentsName',name);put('SumInsured',num(val('sum_insured','contents_value','coverage_sum','insured_sum')));put('Rooms',intg(val('rooms','number_of_rooms')));addp('PLZ',val('postal_code','zip'));addp('Security',val('security_features','security'));\n}else if(suffix==='LeadLegal'){\nput('LeadLegalName',name);put('CurrentInsurer',val('current_insurer','current_carrier'));put('CurrentPremium',num(val('current_premium')));put('ExternalConversationID',convId);put('SourceChannel',channel);addp('Coverage',val('coverage_type','modules','coverage_scope'));addp('Intent',val('intent','lead_intent'));\n}\nvar label='Lead: '+(name||'Unknown')+' - '+line+' - '+(phone||convId);\naddp('Line',line);addp('Name',name);addp('Phone',phone);addp('Quote',quote);\nvar desc=parts.length?parts.join('; ')+'; via Unica voice':'Lead via Unica voice';\nput('pyLabel',label);put('pyDescription',desc);\nvar pega_body={caseTypeID:CASE_TYPE_ID,content:content};\nreturn [{json:{conversation_id:convId,line_of_business:line,case_type_id:CASE_TYPE_ID,pega_body:pega_body}}];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "0c7ffdd9-b596-44d4-97f3-b88399a9634f",
+            "name": "Create Pega Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.pega_body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "62ae4c2d-fc22-482b-b44c-2e01d17a986f",
+            "name": "Result",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "var r = $json;\nvar sent = $('Map to Pega').first().json;\nvar status = (r.statusCode!==undefined? r.statusCode : null);\nvar body = (r.body!==undefined? r.body : r);\nvar fullId = null;\ntry { if(body){ fullId = body.ID || body.pyID || null; } } catch(e){}\nvar caseNumber = null;\nif(fullId){ var parts = String(fullId).split(' '); caseNumber = parts[parts.length-1]; }\nvar ok = (status>=200 && status<300);\nreturn [{ json: {\n  ok: ok,\n  pega_status: status,\n  case_number: caseNumber,\n  pega_case_id: fullId,\n  line_of_business: sent.line_of_business,\n  case_type_id: sent.case_type_id,\n  external_conversation_id: sent.conversation_id,\n  next_steps: ok ? 'sms_with_link_and_proposal' : 'retry_or_handoff',\n  pega_response: body\n} }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "681f9adc-10f7-49de-8b34-7bbc1037dd8a",
+            "name": "Respond",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "options": {
+                },
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify($json) }}"
+            },
+            "typeVersion": 1
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Result": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map to Pega": {
+            "main": [
+                [
+                    {
+                        "node": "Create Pega Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Pega Case": {
+            "main": [
+                [
+                    {
+                        "node": "Result",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Post-call Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Map to Pega",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
