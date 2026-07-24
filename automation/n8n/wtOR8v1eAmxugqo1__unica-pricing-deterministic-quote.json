@@ -1,0 +1,80 @@
+{
+    "name": "Unica Pricing — Deterministic Quote",
+    "nodes": [
+        {
+            "id": "083c8647-c292-47e4-9c0a-a76f89dab0d7",
+            "name": "Quote Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                0,
+                0
+            ],
+            "webhookId": "31e238de-45e2-4cb9-bcf6-67f894ac41c3",
+            "parameters": {
+                "path": "unica-quote",
+                "options": {
+                },
+                "httpMethod": "POST",
+                "responseMode": "responseNode"
+            },
+            "typeVersion": 2.1
+        },
+        {
+            "id": "27177d00-003a-4820-93cf-cdd27e4589e8",
+            "name": "Quote",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nconst inItem = $input.first().json;\nconst body = (inItem && inItem.body) ? inItem.body : inItem;\nfunction norm(s){ if(s===undefined||s===null) return \"\"; return String(s).toLowerCase().trim(); }\nfunction num(s){ const n = Number(s); return isFinite(n) ? n : 0; }\n\nconst DISC = \"Indikativer Richtwert, kein verbindliches Angebot. Das offizielle Angebot erhalten Sie per E-Mail.\";\n\nconst CATALOG = {\n  car: [\n    { ProductCode:\"CAR-LIAB-STD\", ProductName:\"Unica Kfz Haftpflicht\", base:480 },\n    { ProductCode:\"CAR-TK-COMFORT\", ProductName:\"Unica Kfz Komfort (Haftpflicht + Teilkasko)\", base:760 },\n    { ProductCode:\"CAR-VK-PREMIUM\", ProductName:\"Unica Kfz Premium (Haftpflicht + Vollkasko)\", base:1180 }\n  ],\n  liability: [\n    { ProductCode:\"LIAB-SINGLE\", ProductName:\"Unica Privathaftpflicht Single\", base:70 },\n    { ProductCode:\"LIAB-FAMILY\", ProductName:\"Unica Privathaftpflicht Familie\", base:95 }\n  ],\n  home_contents: [\n    { ProductCode:\"HC-STD\", ProductName:\"Unica Haushalt Standard\", rate:0.0016 },\n    { ProductCode:\"HC-PLUS\", ProductName:\"Unica Haushalt Plus\", rate:0.0022 }\n  ],\n  legal: [\n    { ProductCode:\"LEGAL-PRIVATE\", ProductName:\"Unica Rechtsschutz Privat\", base:230 },\n    { ProductCode:\"LEGAL-COMBO\", ProductName:\"Unica Rechtsschutz Kombi\", base:360 }\n  ],\n  life: [\n    { ProductCode:\"LIFE-TERM-STD\", ProductName:\"Unica Risikoleben\", rate:0.0009 },\n    { ProductCode:\"LIFE-VORSORGE\", ProductName:\"Unica Leben Vorsorge\", rate:0.0021 }\n  ]\n};\n\nfunction mapLine(raw){\n  const s = norm(raw);\n  function has(arr){ for(var i=0;i<arr.length;i++){ if(s.indexOf(arr[i])>=0) return true; } return false; }\n  if(has([\"car\",\"auto\",\"kfz\",\"pkw\",\"fahrzeug\",\"automobil\"])) return \"car\";\n  if(has([\"haftpflicht\",\"liability\"])) return \"liability\";\n  if(has([\"hausrat\",\"haushalt\",\"home\",\"contents\",\"eigenheim\",\"wohnung\",\"inhalt\"])) return \"home_contents\";\n  if(has([\"rechtsschutz\",\"legal\",\"recht\"])) return \"legal\";\n  if(has([\"leben\",\"life\",\"vorsorge\",\"risikoleben\"])) return \"life\";\n  return \"\";\n}\n\nfunction round10(n){ var r = Math.round(n/10)*10; return r < 10 ? 10 : r; }\nfunction band(mid){ return { low: round10(mid*0.82), high: round10(mid*1.18), currency:\"EUR\", per:\"year\" }; }\nfunction pick(line, code){ var arr = CATALOG[line]; for(var i=0;i<arr.length;i++){ if(arr[i].ProductCode===code) return arr[i]; } return arr[0]; }\n\nconst line = mapLine(body.line_of_business);\n\nif(!line){\n  return [{ json: {\n    status:\"Disqualified\",\n    line: norm(body.line_of_business) || \"unknown\",\n    recommended_product: null,\n    indicative_range: null,\n    rationale: \"Diese Versicherungsart wird aktuell nicht angeboten. Ich leite Sie an einen Spezialisten weiter, der zurueckruft.\",\n    missing_fields: [],\n    next_step: \"pass_to_specialist\",\n    disclaimer: DISC\n  } }];\n}\n\nvar prod = null;\nvar mid = 0;\nvar missing = [];\nvar rationale = \"\";\n\nif(line === \"car\"){\n  var cov = norm(body.coverage);\n  var age = num(body.driver_age);\n  if(!cov) missing.push(\"coverage\");\n  if(!age) missing.push(\"driver_age\");\n  if(missing.length === 0){\n    var code = \"CAR-LIAB-STD\";\n    if(cov.indexOf(\"vollkasko\")>=0 || cov.indexOf(\"voll\")>=0) code = \"CAR-VK-PREMIUM\";\n    else if(cov.indexOf(\"teilkasko\")>=0 || cov.indexOf(\"teil\")>=0) code = \"CAR-TK-COMFORT\";\n    prod = pick(\"car\", code);\n    var power = num(body.power_kw); if(!power) power = 70;\n    var region = norm(body.region);\n    var bm = num(body.bonus_malus); if(!bm) bm = 1.0;\n    var ageF = 1.0;\n    if(age<25) ageF=1.30; else if(age<30) ageF=1.18; else if(age<40) ageF=1.05; else if(age<60) ageF=1.0; else if(age<70) ageF=1.15; else ageF=1.35;\n    var powerF = 1 + Math.max(0,(power-70))*0.006;\n    var regionF = (region.indexOf(\"wien\")>=0)?1.15:((region.indexOf(\"graz\")>=0||region.indexOf(\"linz\")>=0)?1.07:1.0);\n    mid = prod.base * ageF * powerF * regionF * bm;\n    rationale = prod.ProductName + \" passend fuer Fahrer mit \" + age + \" Jahren.\";\n  }\n} else if(line === \"liability\"){\n  var hh = norm(body.household);\n  var lcode = (hh.indexOf(\"famil\")>=0) ? \"LIAB-FAMILY\" : \"LIAB-SINGLE\";\n  prod = pick(\"liability\", lcode);\n  mid = prod.base;\n  rationale = prod.ProductName + \" passend.\";\n} else if(line === \"home_contents\"){\n  var cv = num(body.contents_value);\n  if(!cv){ missing.push(\"contents_value\"); }\n  else {\n    var hcov = norm(body.coverage);\n    var hcode = (hcov.indexOf(\"plus\")>=0 || hcov.indexOf(\"premium\")>=0) ? \"HC-PLUS\" : \"HC-STD\";\n    prod = pick(\"home_contents\", hcode);\n    var hregion = norm(body.region);\n    var hregF = (hregion.indexOf(\"wien\")>=0)?1.10:1.0;\n    mid = cv * prod.rate * hregF;\n    rationale = prod.ProductName + \" fuer Versicherungssumme \" + cv + \" Euro.\";\n  }\n} else if(line === \"legal\"){\n  var lcov = norm(body.coverage);\n  var legcode = (lcov.indexOf(\"kombi\")>=0 || lcov.indexOf(\"combo\")>=0 || lcov.indexOf(\"verkehr\")>=0) ? \"LEGAL-COMBO\" : \"LEGAL-PRIVATE\";\n  prod = pick(\"legal\", legcode);\n  mid = prod.base;\n  rationale = prod.ProductName + \" passend.\";\n} else if(line === \"life\"){\n  var sa = num(body.sum_assured);\n  if(!sa){ missing.push(\"sum_assured\"); }\n  else {\n    var vcov = norm(body.coverage);\n    var vcode = (vcov.indexOf(\"vorsorge\")>=0 || vcov.indexOf(\"spar\")>=0 || vcov.indexOf(\"erleben\")>=0) ? \"LIFE-VORSORGE\" : \"LIFE-TERM-STD\";\n    prod = pick(\"life\", vcode);\n    var term = num(body.term_years); if(!term) term = 15;\n    var tobRaw = norm(body.tobacco);\n    var tob = (body.tobacco===true || tobRaw.indexOf(\"ja\")>=0 || tobRaw.indexOf(\"yes\")>=0 || tobRaw.indexOf(\"rauch\")>=0 || tobRaw.indexOf(\"smok\")>=0);\n    var tobF = tob ? 1.6 : 1.0;\n    var termF = 1 + Math.max(0,(term-10))*0.015;\n    mid = sa * prod.rate * tobF * termF;\n    rationale = prod.ProductName + \" fuer Versicherungssumme \" + sa + \" Euro, Laufzeit \" + term + \" Jahre.\";\n  }\n}\n\nif(missing.length > 0){\n  return [{ json: {\n    status:\"NeedsReview\",\n    line: line,\n    recommended_product: prod ? { ProductCode: prod.ProductCode, ProductName: prod.ProductName } : null,\n    indicative_range: null,\n    rationale: \"Es fehlen noch Angaben fuer die Schaetzung.\",\n    missing_fields: missing,\n    next_step: \"collect_missing\",\n    disclaimer: DISC\n  } }];\n}\n\nvar rng = band(mid);\nreturn [{ json: {\n  status:\"Qualified\",\n  line: line,\n  recommended_product: { ProductCode: prod.ProductCode, ProductName: prod.ProductName },\n  indicative_range: rng,\n  rationale: rationale,\n  missing_fields: [],\n  next_step: \"offer_consultation_booking\",\n  disclaimer: DISC\n} }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "54931e93-4ba0-4802-b6ed-1e1b2a5af9de",
+            "name": "Respond",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "options": {
+                },
+                "respondWith": "firstIncomingItem"
+            },
+            "typeVersion": 1.1
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Quote": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Quote Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Quote",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
