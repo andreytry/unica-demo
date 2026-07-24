@@ -1,0 +1,86 @@
+{
+    "name": "V+ — quote webhook prod test",
+    "nodes": [
+        {
+            "id": "f4e79fcd-b50e-4b79-beec-dcb31ce23f55",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "624556e9-912e-4114-bd85-b741f7a9af36",
+            "name": "Post Quote",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://ai-process.app.n8n.cloud/webhook/unica-quote-v3",
+                "method": "POST",
+                "options": {
+                    "timeout": 40000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ line_of_business:\"Haftpflicht\", mode:\"precise\", household:\"single\" }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "specifyBody": "json"
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "b9db5520-cb54-47f6-bbc9-109cb54c5db7",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nreturn [{ json: { http_status:(r.statusCode!==undefined?r.statusCode:null), body_empty: (JSON.stringify(b)===\"{}\"||b===\"\"||b===null), response: b } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Post Quote",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Post Quote": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
