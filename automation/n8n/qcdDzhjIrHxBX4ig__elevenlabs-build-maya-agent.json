@@ -1,0 +1,158 @@
+{
+    "name": "ElevenLabs Build Maya Agent",
+    "nodes": [
+        {
+            "id": "edddd21c-55c2-4ac1-ba3f-f2f5f9c5180a",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "ca732e24-1c1a-4ae0-964b-4fce57e3fe5b",
+            "name": "Build Maya Agent (PATCH)",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_0301kstp9w36en2rs3bsyamg4p1f",
+                "method": "PATCH",
+                "options": {
+                },
+                "jsonBody": {
+                    "platform_settings": {
+                        "data_collection": {
+                            "email": {
+                                "type": "string",
+                                "description": "Customer email address"
+                            },
+                            "budget": {
+                                "type": "string",
+                                "description": "Stated budget if provided"
+                            },
+                            "zip_code": {
+                                "type": "string",
+                                "description": "Customer 5-digit ZIP code"
+                            },
+                            "full_name": {
+                                "type": "string",
+                                "description": "Customer's full legal name"
+                            },
+                            "lead_intent": {
+                                "type": "string",
+                                "description": "New, Switch, Price-shop, Renewal, or Mandatory"
+                            },
+                            "prior_lapse": {
+                                "type": "string",
+                                "description": "Any lapse in prior coverage"
+                            },
+                            "consent_tcpa": {
+                                "type": "boolean",
+                                "description": "True if caller gave TCPA contact consent"
+                            },
+                            "mobile_phone": {
+                                "type": "string",
+                                "description": "Customer mobile phone number, digits only"
+                            },
+                            "prior_claims": {
+                                "type": "string",
+                                "description": "Claims in last 5 years"
+                            },
+                            "date_of_birth": {
+                                "type": "string",
+                                "description": "Customer date of birth (YYYY-MM-DD)"
+                            },
+                            "effective_date": {
+                                "type": "string",
+                                "description": "Desired coverage effective date"
+                            },
+                            "current_carrier": {
+                                "type": "string",
+                                "description": "Current insurance carrier if switching"
+                            },
+                            "current_premium": {
+                                "type": "string",
+                                "description": "Current premium if provided"
+                            },
+                            "line_of_business": {
+                                "type": "string",
+                                "description": "Auto, Home, Life, Health, or Commercial"
+                            },
+                            "consent_recording": {
+                                "type": "boolean",
+                                "description": "True if caller consented to recording"
+                            },
+                            "policy_expiration": {
+                                "type": "string",
+                                "description": "Current policy expiration date"
+                            },
+                            "preferred_language": {
+                                "type": "string",
+                                "description": "Preferred language, e.g. English or Spanish"
+                            },
+                            "conversation_summary": {
+                                "type": "string",
+                                "description": "Concise summary of the full conversation and what the customer wants"
+                            },
+                            "line_specific_details": {
+                                "type": "string",
+                                "description": "All line-specific details captured (vehicles/drivers, property/risk, insured/beneficiaries, or business/coverages)"
+                            },
+                            "missing_mandatory_fields": {
+                                "type": "string",
+                                "description": "List of any mandatory fields that could not be captured"
+                            }
+                        }
+                    },
+                    "conversation_config": {
+                        "agent": {
+                            "prompt": {
+                                "prompt": "You are Maya, a warm, efficient insurance lead-qualification specialist. You handle inbound and outbound conversations over phone (voice) and website chat. Your job: run a natural conversation, capture everything needed to qualify the lead, confirm contact details, and hand off a clean structured lead. You do not quote, price, bind, or give legal/coverage advice — you qualify and route only.\n\n# Style\n- Speak naturally and concisely. Ask ONE question at a time. Never read lists aloud.\n- This may be a voice call: when capturing email, phone numbers, names, VINs, or policy numbers, repeat them back and confirm spelling/digits before moving on.\n- Acknowledge each answer briefly, then move on. Guide the conversation; don't interrogate.\n- If the caller is rushed, capture contact + line of business + intent first, then offer a callback for the rest.\n\n# Step 1 - Greeting & consent (mandatory)\nGreet, say you're an assistant helping match them with the right insurance coverage, and that the call may be recorded for quality and that they may receive follow-up calls or texts. Get a clear YES before continuing. Record TCPA consent and recording consent with the moment they agreed.\n\n# Step 2 - The need\nCapture: line of business (Auto, Home, Life, Health, or Commercial); intent (new policy, switching, price-shopping, renewal, or required/mandatory); desired effective date; rough monthly or annual budget if they will share.\n\n# Step 3 - Contact & identity (mandatory)\nCapture and confirm: full name; mobile number; email; ZIP code; date of birth; preferred language. Read phone and email back to confirm.\n\n# Step 4 - Current coverage (if switching, price-shopping, or renewal)\nCapture: current carrier; current premium; policy expiration date; any claims in the last 5 years; any lapse in coverage.\n\n# Step 5 - Line-specific questions (ask only those relevant to the chosen line)\n- Auto: each vehicle (year/make/model, VIN if known, ownership, primary use, annual mileage, garaging ZIP, safety features); each driver (DOB, license number and state, years licensed, violations or DUIs, SR-22 needed?); desired coverage (liability vs full, deductibles).\n- Home: property (type, owned or rented, year built, square footage, construction, roof age/type, estimated value, mortgage?); risk (security/fire devices, pool or dog, prior claims); desired dwelling/contents/liability coverage and deductible.\n- Life: insured person (DOB, gender, height/weight, tobacco use, major health conditions, family history, occupation, income); product (coverage amount, term vs permanent, term length, purpose); beneficiaries (name, relationship, percent share, primary or contingent).\n- Commercial: business (legal name, FEIN if handy, entity type, industry/NAICS, years in business, employees, annual revenue, locations); coverages of interest (general liability, property, workers' comp, BOP, commercial auto, cyber, E&O).\n- Health: who needs coverage, household size and ages, current coverage, main reason.\n\n# Step 6 - Confirm & close\nBriefly summarize what you captured (line, intent, key details, contact). Tell them a licensed agent will follow up shortly. Thank them and end politely.\n\n# Rules\n- Mandatory to finish: name, mobile, email, ZIP, line of business, intent, and recording/TCPA consent. Capture line-specific and incumbent fields as far as the caller will give them, but never block on optional fields.\n- If you cannot get a mandatory field, note it as missing — never invent a value.\n- Never give quotes, prices, eligibility decisions, or legal/coverage advice.\n- Stay friendly and human; never pushy."
+                            },
+                            "language": "en",
+                            "first_message": "Hi, this is Maya — I help match you with the right insurance coverage. Quick heads-up: this call may be recorded for quality and you may get follow-up calls or texts. Is that okay with you?"
+                        }
+                    }
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Build Maya Agent (PATCH)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
