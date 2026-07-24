@@ -1,0 +1,140 @@
+{
+    "name": "Unica — consistency Life + Home",
+    "nodes": [
+        {
+            "id": "54387f42-8b78-422d-b1e3-c29140ad5bb7",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "015e1a60-0852-4965-90f6-507308c8c07b",
+            "name": "Build",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar life = \"You are a German speaking customer wanting Lebensversicherung, Risikoleben. Reply briefly. Provide when asked: Alter 40, Versicherungssumme 150000 Euro, Laufzeit 20 Jahre, Nichtraucher. Want the estimate now. Name Thomas Wolf, phone 0676 2223334. After price and closing say Danke and end.\";\nvar home = \"You are a German speaking customer wanting Haushaltsversicherung. Reply briefly. Provide when asked: Versicherungssumme 60000 Euro, Ort Wien, Tarif Plus, Alarmanlage ja. Want the estimate now. Name Sabine Klein, phone 0664 7778889. After price and closing say Danke and end.\";\nvar arr=[];\nvar k;\nfor(k=1;k<=5;k++){ arr.push({ label:\"CONS-LIFE-\"+k, persona: life }); }\nfor(k=1;k<=5;k++){ arr.push({ label:\"CONS-HOME-\"+k, persona: home }); }\nreturn arr.map(function(p){ return { json: p }; });\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "96fafc62-0525-4cc6-a51f-0fb17d2f6ffa",
+            "name": "Simulate",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6/simulate-conversation",
+                "method": "POST",
+                "options": {
+                    "timeout": 200000
+                },
+                "jsonBody": "={{ JSON.stringify({ simulation_specification: { simulated_user_config: { language: \"de\", prompt: { prompt: $json.persona } } }, new_turns_limit: 22 }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "3fb718d7-ec0d-46a8-b78d-80b4ffccbe01",
+            "name": "Extract",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar items=$input.all(); var out=[];\nfor(var r=0;r<items.length;r++){\n var conv=items[r].json.simulated_conversation||[];\n var q=[], tools=[];\n for(var i=0;i<conv.length;i++){ var t=conv[i]; if(t.role===\"agent\" && t.message) q.push(t.message); if(t.tool_calls){ for(var j=0;j<t.tool_calls.length;j++){ var p={}; try{p=JSON.parse(t.tool_calls[j].params_as_json||\"{}\");}catch(e){} tools.push(p); } } }\n var last=null; for(var m=tools.length-1;m>=0;m--){ if(tools[m].mode===\"precise\"){ last=tools[m]; break; } }\n out.push({ json: { idx:r+1, num_turns:q.length, precise_params:last, all_tool_params:tools } });\n}\nreturn out;\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "1d0e650e-2286-4521-9ba0-8e4a94f53473",
+            "name": "Collect",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "return [{ json: { runs: $input.all().map(function(i){ return i.json; }) } }];"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Build": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Build",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract": {
+            "main": [
+                [
+                    {
+                        "node": "Collect",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Simulate": {
+            "main": [
+                [
+                    {
+                        "node": "Extract",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
