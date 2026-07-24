@@ -1,0 +1,150 @@
+{
+    "name": "Unica — Pega Lead intake TEST",
+    "nodes": [
+        {
+            "id": "702c8396-c122-41dd-9abb-f46a04aa13f3",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "1afe1cfd-b23d-4591-abcf-c5898da561fa",
+            "name": "Sample Payload",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\n// Realistic ElevenLabs post-call webhook payload (post_call_transcription)\nvar body = {\n  type: \"post_call_transcription\",\n  event_timestamp: Math.floor(Date.now()/1000),\n  data: {\n    agent_id: \"agent_3701kvdy0a45eywvg4yn9kw8pqv6\",\n    conversation_id: \"test-conv-001\",\n    status: \"done\",\n    transcript: [\n      { role: \"agent\", message: \"Hallo, hier ist Unica. Welche Versicherung moechten Sie?\" },\n      { role: \"user\", message: \"Eine Kfz-Versicherung, Vollkasko.\" },\n      { role: \"agent\", message: \"Wie alt ist der Hauptlenker?\" },\n      { role: \"user\", message: \"42 Jahre, 110 kW, Wien, Fahrzeugwert 25000 Euro, 8 schadenfreie Jahre, ein Lenker.\" },\n      { role: \"agent\", message: \"Die genaue Vorab-Praemie liegt bei circa 1260 Euro pro Jahr fuer Kfz-Vollkasko.\" },\n      { role: \"user\", message: \"Max Mustermann, 0660 1234567.\" }\n    ],\n    metadata: { call_duration_secs: 95, phone_call: null },\n    analysis: {\n      transcript_summary: \"Kunde wuenscht Kfz-Vollkasko fuer 42-jaehrigen Lenker in Wien, 110 kW, Wert 25000 Euro, 8 schadenfreie Jahre. Vorab-Praemie ca. 1260 Euro pro Jahr. Kontakt: Max Mustermann, 0660 1234567.\",\n      call_successful: \"success\",\n      data_collection_results: {\n        full_name: { value: \"Max Mustermann\" },\n        mobile_phone: { value: \"06601234567\" },\n        email: { value: null },\n        postal_code: { value: null },\n        date_of_birth: { value: null },\n        preferred_language: { value: \"German\" },\n        line_of_business: { value: \"car\" },\n        lead_intent: { value: \"New\" },\n        indicative_quote: { value: \"1260 Euro pro Jahr fuer Kfz-Vollkasko\" },\n        line_specific_details: { value: \"Vollkasko, 42 J., 110 kW, Wien, 25000 Euro, 8 sf, 1 Lenker\" },\n        current_carrier: { value: null },\n        current_premium: { value: null },\n        budget: { value: null },\n        effective_date: { value: null },\n        prior_claims: { value: \"0\" },\n        prior_lapse: { value: null },\n        consent_tcpa: { value: true },\n        consent_recording: { value: null },\n        conversation_summary: { value: \"Kfz-Vollkasko Lead, Max Mustermann\" }\n      }\n    }\n  }\n};\nreturn [{ json: { body: body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "b4d79135-9cc9-4377-80d6-9d887ec181e1",
+            "name": "Map to Pega",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar b = $json.body || $json;\nvar d = b.data || b;\nvar dc = (d.analysis && d.analysis.data_collection_results) || {};\nfunction v(k){ return (dc[k] && dc[k].value!==undefined) ? dc[k].value : null; }\nvar tr = d.transcript || [];\nvar full = tr.map(function(t){ return (t.role||\"\")+\": \"+(t.message||\"\"); }).join(\"\\n\");\nvar convId = d.conversation_id || (\"CONV-\"+Date.now());\nvar CASE_TYPE_ID = \"OOPP-InsConv-Work-Lead\";\nvar content = {\n  SourceChannel: (d.metadata && d.metadata.phone_call) ? \"Phone\" : \"WebVoice\",\n  ExternalConversationID: convId,\n  LineOfBusiness: v(\"line_of_business\"),\n  LeadIntent: v(\"lead_intent\"),\n  QualificationMode: \"LLM\",\n  IndicativeQuote: v(\"indicative_quote\"),\n  ConversationSummary: (d.analysis && d.analysis.transcript_summary) || v(\"conversation_summary\"),\n  Customer: { FullName: v(\"full_name\"), MobilePhone: v(\"mobile_phone\"), Email: v(\"email\"), PostalCode: v(\"postal_code\"), DateOfBirth: v(\"date_of_birth\"), PreferredLanguage: v(\"preferred_language\") },\n  CoverageRequest: { LineSpecificDetails: v(\"line_specific_details\"), CurrentCarrier: v(\"current_carrier\"), CurrentPremium: v(\"current_premium\"), Budget: v(\"budget\"), EffectiveDate: v(\"effective_date\"), PriorClaims: v(\"prior_claims\"), PriorLapse: v(\"prior_lapse\") },\n  Consents: [ { ConsentType:\"TCPA\", Granted: !!v(\"consent_tcpa\"), Timestamp: new Date().toISOString() }, { ConsentType:\"Recording\", Granted: !!v(\"consent_recording\"), Timestamp: new Date().toISOString() } ],\n  Transcript: { FullText: full, SlotMapJSON: JSON.stringify(dc), DurationSec: (d.metadata && d.metadata.call_duration_secs)||null, ModelVersion: d.agent_id||null }\n};\nvar pega_body = { caseTypeID: CASE_TYPE_ID, processID: \"pyStartCase\", content: content };\nreturn [{ json: { conversation_id: convId, pega_body: pega_body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "0c69f61b-c228-405b-95b0-18a2a03dffbe",
+            "name": "Create Pega Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.pega_body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Basic dGVzdDp0ZXN0"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "371a8320-7a77-4e26-a3dc-854ce149777c",
+            "name": "Result",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json;\nvar sent = $('Map to Pega').first().json.pega_body;\nreturn [{ json: { pega_status: (r.statusCode!==undefined? r.statusCode : null), pega_response: (r.body!==undefined? r.body : r), sent_to_pega: sent } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Sample Payload",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map to Pega": {
+            "main": [
+                [
+                    {
+                        "node": "Create Pega Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Sample Payload": {
+            "main": [
+                [
+                    {
+                        "node": "Map to Pega",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Pega Case": {
+            "main": [
+                [
+                    {
+                        "node": "Result",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
