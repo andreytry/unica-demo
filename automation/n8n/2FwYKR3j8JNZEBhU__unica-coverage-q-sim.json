@@ -1,0 +1,90 @@
+{
+    "name": "Unica — coverage Q sim",
+    "nodes": [
+        {
+            "id": "ed6f362f-6754-4cf7-9c65-10ece70ccf63",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "78eb1662-69fe-4ce8-a6b2-fda7637e8a20",
+            "name": "Simulate",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6/simulate-conversation",
+                "method": "POST",
+                "options": {
+                    "timeout": 200000
+                },
+                "jsonBody": "{\n  \"simulation_specification\": {\n    \"simulated_user_config\": {\n      \"language\": \"de\",\n      \"prompt\": {\n        \"prompt\": \"You are a German speaking customer interested in Kfz Vollkasko. Ask coverage questions, not a price. First ask: Was genau ist in der Vollkasko enthalten? Then ask: Wie hoch ist der Selbstbehalt bei der Vollkasko? Then ask: Ist Vandalismus gedeckt? Keep each message short. After you get clear answers, say Danke and end the conversation.\"\n      }\n    }\n  },\n  \"new_turns_limit\": 16\n}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "9ab78a14-d010-4e21-8665-ab3fc133385e",
+            "name": "Extract",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar conv = $input.first().json.simulated_conversation || [];\nvar turns = [];\nfor(var i=0;i<conv.length;i++){ var t=conv[i]; if(t.message){ turns.push({ role: t.role, message: t.message }); } }\nreturn [{ json: { turns: turns } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Simulate": {
+            "main": [
+                [
+                    {
+                        "node": "Extract",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
