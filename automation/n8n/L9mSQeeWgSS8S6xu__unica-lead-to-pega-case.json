@@ -1,0 +1,95 @@
+{
+    "name": "Unica Lead to Pega Case",
+    "nodes": [
+        {
+            "id": "ad1b94a2-f0af-4c64-9590-b4bc734dd8c6",
+            "name": "ElevenLabs Post-Call",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                0,
+                0
+            ],
+            "webhookId": "396d163c-34a5-425a-9532-26f9c9374b3e",
+            "parameters": {
+                "path": "unica-lead",
+                "options": {
+                },
+                "httpMethod": "POST",
+                "responseMode": "onReceived"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "71a13e5f-8efd-48d5-9a6d-d3604181daeb",
+            "name": "Map Lead to Case Type",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "jsCode": "const root = $input.first().json;\nconst body = root.body || root;\nconst dcr = (((body.data||{}).analysis||{}).data_collection_results) || {};\nconst g = (k) => { const f = dcr[k]; if(!f) return ''; return (f.value!==undefined? f.value : f) || ''; };\nconst lob = String(g('line_of_business') || g('insurance_type') || '').toLowerCase();\nconst map = { car:'MyOrg-CILMConv-Work-LeadCar', auto:'MyOrg-CILMConv-Work-LeadCar', liability:'MyOrg-CILMConv-Work-LeadLiability', home:'MyOrg-CILMConv-Work-LeadHomeContents', home_contents:'MyOrg-CILMConv-Work-LeadHomeContents', legal:'MyOrg-CILMConv-Work-LeadLegal', life:'MyOrg-CILMConv-Work-LeadLife' };\nconst caseTypeID = map[lob] || 'MyOrg-CILMConv-Work-LeadIntake';\nconst fullName = g('full_name'); const email = g('email'); const phone = g('mobile_phone')||g('phone'); const postalCode = g('postal_code');\nconst summary = g('conversation_summary'); const quote = g('indicative_quote');\nconst label = 'Lead: ' + (fullName||'Unknown') + ' - ' + (lob||'n/a') + (phone? ' - ' + phone : '');\nconst d = [];\nif(email) d.push('Email '+email);\nif(postalCode) d.push('PLZ '+postalCode);\nif(quote) d.push('Quote '+quote);\nif(summary) d.push(summary);\nd.push('via Unica voice');\nconst description = d.join('; ');\nreturn [{ json: { caseTypeID, lineOfBusiness: lob, fullName, email, phone, postalCode, conversationId: ((body.data||{}).conversation_id)||'', label, description } }];",
+                "language": "javaScript"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "a2db89f4-560d-4533-8617-0e761048c97f",
+            "name": "Create Pega Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": "={{ { \"caseTypeID\": $json.caseTypeID, \"content\": { \"pyLabel\": $json.label, \"pyDescription\": $json.description } } }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "ElevenLabs Post-Call": {
+            "main": [
+                [
+                    {
+                        "node": "Map Lead to Case Type",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map Lead to Case Type": {
+            "main": [
+                [
+                    {
+                        "node": "Create Pega Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
