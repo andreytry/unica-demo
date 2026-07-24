@@ -1,0 +1,71 @@
+{
+    "name": "ElevenLabs Proxy",
+    "nodes": [
+        {
+            "id": "0dd8abaa-23f2-4352-afc6-802cb85f1318",
+            "name": "In",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                240,
+                300
+            ],
+            "webhookId": "aeb01c08-f628-4eb1-a8b3-ae1aba5af9a0",
+            "parameters": {
+                "path": "el-proxy",
+                "httpMethod": "POST",
+                "responseMode": "lastNode"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "ab8c8227-0bcc-4580-8d93-061b72a7e5ed",
+            "name": "EL",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                460,
+                300
+            ],
+            "parameters": {
+                "url": "={{ $json.body.url }}",
+                "method": "={{ $json.body.method || 'GET' }}",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ $json.body.payload_b64 ? $json.body.payload_b64.base64Decode() : ($json.body.payload_str || JSON.stringify($json.body.payload || {})) }}",
+                "sendBody": "={{ ($json.body.method === 'POST') || ($json.body.method === 'PATCH') }}",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "In": {
+            "main": [
+                [
+                    {
+                        "node": "EL",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
