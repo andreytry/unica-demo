@@ -1,0 +1,80 @@
+{
+    "name": "Unica Pricing v2 — Precise Quote",
+    "nodes": [
+        {
+            "id": "a2b7130f-d5cc-4cdd-b5df-4c663a7899b6",
+            "name": "Quote Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                0,
+                0
+            ],
+            "webhookId": "0eaf03dd-0dd8-4b5e-b58b-eeb89c9ad773",
+            "parameters": {
+                "path": "unica-quote-v2",
+                "options": {
+                },
+                "httpMethod": "POST",
+                "responseMode": "responseNode"
+            },
+            "typeVersion": 2.1
+        },
+        {
+            "id": "e979d3de-52fd-4a11-9f03-12101d1022c6",
+            "name": "Quote",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nconst inItem = $input.first().json;\nconst body = (inItem && inItem.body) ? inItem.body : inItem;\nfunction norm(s){ if(s===undefined||s===null) return \"\"; return String(s).toLowerCase().trim(); }\nfunction num(s){ const n = Number(s); return isFinite(n) ? n : 0; }\nfunction isSet(v){ return !(v===undefined||v===null||String(v).trim()===\"\"); }\n\nconst DISC = \"Indikativer Richtwert. Das genaue Angebot erhalten Sie per E-Mail, den Link zusaetzlich per SMS.\";\n\nconst CATALOG = {\n  car: [\n    { ProductCode:\"CAR-LIAB-STD\", ProductName:\"Unica Kfz Haftpflicht\", base:480 },\n    { ProductCode:\"CAR-TK-COMFORT\", ProductName:\"Unica Kfz Komfort (Haftpflicht + Teilkasko)\", base:760 },\n    { ProductCode:\"CAR-VK-PREMIUM\", ProductName:\"Unica Kfz Premium (Haftpflicht + Vollkasko)\", base:1180 }\n  ],\n  liability: [\n    { ProductCode:\"LIAB-SINGLE\", ProductName:\"Unica Privathaftpflicht Single\", base:70 },\n    { ProductCode:\"LIAB-FAMILY\", ProductName:\"Unica Privathaftpflicht Familie\", base:95 }\n  ],\n  home_contents: [\n    { ProductCode:\"HC-STD\", ProductName:\"Unica Haushalt Standard\", rate:0.0016 },\n    { ProductCode:\"HC-PLUS\", ProductName:\"Unica Haushalt Plus\", rate:0.0022 }\n  ],\n  legal: [\n    { ProductCode:\"LEGAL-PRIVATE\", ProductName:\"Unica Rechtsschutz Privat\", base:230 },\n    { ProductCode:\"LEGAL-COMBO\", ProductName:\"Unica Rechtsschutz Kombi\", base:360 }\n  ],\n  life: [\n    { ProductCode:\"LIFE-TERM-STD\", ProductName:\"Unica Risikoleben\", rate:0.0009 },\n    { ProductCode:\"LIFE-VORSORGE\", ProductName:\"Unica Leben Vorsorge\", rate:0.0021 }\n  ]\n};\n\nfunction mapLine(raw){\n  const s = norm(raw);\n  function has(arr){ for(var i=0;i<arr.length;i++){ if(s.indexOf(arr[i])>=0) return true; } return false; }\n  if(has([\"car\",\"auto\",\"kfz\",\"pkw\",\"fahrzeug\",\"automobil\"])) return \"car\";\n  if(has([\"haftpflicht\",\"liability\"])) return \"liability\";\n  if(has([\"hausrat\",\"haushalt\",\"home\",\"contents\",\"eigenheim\",\"wohnung\",\"inhalt\"])) return \"home_contents\";\n  if(has([\"rechtsschutz\",\"legal\",\"recht\"])) return \"legal\";\n  if(has([\"leben\",\"life\",\"vorsorge\",\"risikoleben\"])) return \"life\";\n  return \"\";\n}\n\nfunction round10(n){ var r = Math.round(n/10)*10; return r < 10 ? 10 : r; }\nfunction regionF(r){ var x = norm(r); if(x.indexOf(\"wien\")>=0) return 1.15; if(x.indexOf(\"graz\")>=0||x.indexOf(\"linz\")>=0||x.indexOf(\"salzburg\")>=0) return 1.07; return 1.0; }\nfunction pick(line, code){ var arr = CATALOG[line]; for(var i=0;i<arr.length;i++){ if(arr[i].ProductCode===code) return arr[i]; } return arr[0]; }\n\nconst line = mapLine(body.line_of_business);\n\nif(!line){\n  return [{ json: {\n    status:\"Disqualified\", line: norm(body.line_of_business)||\"unknown\",\n    recommended_product:null, estimate:null, indicative_range:null,\n    rationale:\"Diese Versicherungsart wird aktuell nicht angeboten. Ich leite Sie an einen Spezialisten weiter, der zurueckruft.\",\n    missing_fields:[], next_step:\"pass_to_specialist\", offer_channel:null, disclaimer:DISC\n  } }];\n}\n\nvar prod=null, mid=0, missing=[], rationale=\"\";\n\nif(line===\"car\"){\n  var cov=norm(body.coverage);\n  if(!isSet(body.coverage)) missing.push(\"coverage\");\n  if(!isSet(body.driver_age)) missing.push(\"driver_age\");\n  if(!isSet(body.power_kw)) missing.push(\"power_kw\");\n  if(!isSet(body.region)) missing.push(\"region\");\n  if(missing.length===0){\n    var code=\"CAR-LIAB-STD\";\n    if(cov.indexOf(\"vollkasko\")>=0||cov.indexOf(\"voll\")>=0) code=\"CAR-VK-PREMIUM\";\n    else if(cov.indexOf(\"teilkasko\")>=0||cov.indexOf(\"teil\")>=0) code=\"CAR-TK-COMFORT\";\n    prod=pick(\"car\",code);\n    var age=num(body.driver_age), power=num(body.power_kw), bm=num(body.bonus_malus); if(!bm) bm=1.0;\n    var ageF=1.0;\n    if(age<23)ageF=1.45; else if(age<25)ageF=1.30; else if(age<30)ageF=1.18; else if(age<40)ageF=1.06; else if(age<60)ageF=1.0; else if(age<70)ageF=1.12; else ageF=1.30;\n    var powerF=1+Math.max(0,(power-70))*0.006;\n    mid=prod.base*ageF*powerF*regionF(body.region)*bm;\n    rationale=prod.ProductName+\", \"+age+\" Jahre, \"+power+\" kW.\";\n  }\n} else if(line===\"liability\"){\n  if(!isSet(body.household)) missing.push(\"household\");\n  if(!isSet(body.region)) missing.push(\"region\");\n  if(missing.length===0){\n    var fam=norm(body.household).indexOf(\"famil\")>=0;\n    prod=pick(\"liability\", fam?\"LIAB-FAMILY\":\"LIAB-SINGLE\");\n    mid=prod.base*(regionF(body.region)>1.1?1.05:1.0);\n    rationale=prod.ProductName+\".\";\n  }\n} else if(line===\"home_contents\"){\n  if(!isSet(body.contents_value)) missing.push(\"contents_value\");\n  if(!isSet(body.region)) missing.push(\"region\");\n  if(missing.length===0){\n    var cv=num(body.contents_value), hcov=norm(body.coverage);\n    prod=pick(\"home_contents\",(hcov.indexOf(\"plus\")>=0||hcov.indexOf(\"premium\")>=0)?\"HC-PLUS\":\"HC-STD\");\n    mid=cv*prod.rate*regionF(body.region);\n    rationale=prod.ProductName+\", Summe \"+cv+\" Euro.\";\n  }\n} else if(line===\"legal\"){\n  var lcov=norm(body.coverage);\n  prod=pick(\"legal\",(lcov.indexOf(\"kombi\")>=0||lcov.indexOf(\"combo\")>=0||lcov.indexOf(\"verkehr\")>=0||lcov.indexOf(\"beruf\")>=0)?\"LEGAL-COMBO\":\"LEGAL-PRIVATE\");\n  mid=prod.base;\n  rationale=prod.ProductName+\".\";\n} else if(line===\"life\"){\n  var hasAge=isSet(body.age)||isSet(body.driver_age);\n  if(!hasAge) missing.push(\"age\");\n  if(!isSet(body.sum_assured)) missing.push(\"sum_assured\");\n  if(!isSet(body.term_years)) missing.push(\"term_years\");\n  if(!isSet(body.tobacco)) missing.push(\"tobacco\");\n  if(missing.length===0){\n    var vcov=norm(body.coverage);\n    prod=pick(\"life\",(vcov.indexOf(\"vorsorge\")>=0||vcov.indexOf(\"spar\")>=0||vcov.indexOf(\"erleben\")>=0)?\"LIFE-VORSORGE\":\"LIFE-TERM-STD\");\n    var lage=num(isSet(body.age)?body.age:body.driver_age);\n    var sa=num(body.sum_assured), term=num(body.term_years);\n    var lifeAgeF=1.0;\n    if(lage<30)lifeAgeF=0.7; else if(lage<40)lifeAgeF=1.0; else if(lage<50)lifeAgeF=1.7; else if(lage<60)lifeAgeF=3.0; else if(lage<66)lifeAgeF=4.5; else lifeAgeF=6.0;\n    var tobRaw=norm(body.tobacco);\n    var tob=(body.tobacco===true||tobRaw.indexOf(\"ja\")>=0||tobRaw.indexOf(\"yes\")>=0||tobRaw.indexOf(\"rauch\")>=0||tobRaw.indexOf(\"smok\")>=0);\n    var tobF=tob?1.6:1.0;\n    var termF=1+Math.max(0,(term-10))*0.015;\n    mid=sa*prod.rate*lifeAgeF*tobF*termF;\n    rationale=prod.ProductName+\", \"+lage+\" Jahre, Summe \"+sa+\" Euro, \"+term+\" Jahre.\";\n  }\n}\n\nif(missing.length>0){\n  return [{ json: {\n    status:\"NeedsReview\", line:line,\n    recommended_product: prod?{ProductCode:prod.ProductCode,ProductName:prod.ProductName}:null,\n    estimate:null, indicative_range:null,\n    rationale:\"Es fehlen noch Angaben fuer eine genaue Schaetzung.\",\n    missing_fields:missing, next_step:\"collect_missing\", offer_channel:null, disclaimer:DISC\n  } }];\n}\n\nvar est=round10(mid);\nreturn [{ json: {\n  status:\"Qualified\", line:line,\n  recommended_product:{ProductCode:prod.ProductCode,ProductName:prod.ProductName},\n  estimate:est,\n  indicative_range:{ low:round10(mid*0.96), high:round10(mid*1.04), currency:\"EUR\", per:\"year\" },\n  rationale:rationale, missing_fields:[],\n  next_step:\"offer_consultation_booking\",\n  offer_channel:\"email_offer_sms_link\",\n  disclaimer:DISC\n} }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "4ef35a5b-fb63-4822-adeb-e5dbcaa9e319",
+            "name": "Respond",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "options": {
+                },
+                "respondWith": "firstIncomingItem"
+            },
+            "typeVersion": 1.1
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Quote": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Quote Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Quote",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
