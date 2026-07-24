@@ -1,0 +1,71 @@
+{
+    "name": "ElevenLabs Create Unica Webhook",
+    "nodes": [
+        {
+            "id": "b1d5d295-216e-4ecc-a222-4b4616f2251b",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "d212e1e2-254f-4c8c-845d-4059d9f4231b",
+            "name": "Create Webhook",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/workspace/webhooks",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "name": "Unica Post-Call to Pega",
+                    "settings": {
+                        "name": "Unica Post-Call to Pega",
+                        "auth_type": "hmac",
+                        "webhook_url": "https://ai-process.app.n8n.cloud/webhook/unica-lead"
+                    }
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
