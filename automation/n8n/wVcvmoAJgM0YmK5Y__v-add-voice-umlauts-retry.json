@@ -1,0 +1,221 @@
+{
+    "name": "V+ — add voice + umlauts retry",
+    "nodes": [
+        {
+            "id": "82cb4783-bda3-4bcb-b14a-9353e0e96b56",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "9b04b75c-036f-44bd-85f1-06d0c9bd7108",
+            "name": "Add Voice",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/voices/add/8a16613622f7b84681ffb5eec6f0135df6a0a80c861345966a8d414335fb49c1/BtJhEZecBTSpKQ8EHRCJ",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ new_name: \"Lena - V+ Versicherung\" }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "a55024d5-8255-4372-a8d7-487ab8519f89",
+            "name": "Build Agent",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar vid = b.voice_id || null;\nvar PROMPT = \"You are V+ Versicherung, a professional, concise bilingual insurance assistant for retail customers in Austria. Speak GERMAN by default; switch to English only if the customer does. Use correct German spelling with umlauts ä ö ü and ß. Short, business-like turns; ONE question at a time; no small talk; never list all options. [ALWAYS HELP - NEVER REFUSE, NEVER HAND OFF] Never say you cannot help or that you are limited. Never transfer the customer or mention a specialist - there is none. Whatever insurance they want, take the details and proceed. [ONLY CRITICAL PRICE FACTORS] Ask ONLY the few fields that actually drive the price for the chosen line; do not ask for anything else on the call. The rest is collected afterwards via the link. The price-driving fields are: Kfz: Deckung (Haftpflicht/Teilkasko/Vollkasko), Leistung in kW, Ort oder PLZ, schadenfreie Jahre; bei Teilkasko oder Vollkasko zusätzlich der Fahrzeugwert. Haftpflicht: Single oder Familie. Haushalt: Versicherungssumme und Ort oder PLZ. Rechtsschutz: Privat oder Kombi. Lebensversicherung: Alter, Summe, Laufzeit, Raucher ja oder nein. [DISCLAIMER FIRST] As soon as the customer names an insurance type, say once, briefly: Die folgenden Preise sind nur Vorab-Schätzungen, nicht der endgültige Preis. [PROCESS] Ask the critical fields one at a time, then call get_indicative_quote once with mode precise and state: die unverbindliche Vorab-Prämie liegt bei ungefähr ESTIMATE Euro pro Jahr für PRODUKT. Only ever say the estimate the tool returns; never invent a number. For any line that is not one of the five, do not call the tool and do not state a price; just take the name and phone and tell them their offer will follow. [CONTACT AND DELIVERY] Then collect the name and a mobile phone number and read the phone back once. Then ask: Möchten Sie Ihr Angebot per SMS oder per E-Mail erhalten? If SMS, use the phone number. If E-Mail, ask for and confirm the e-mail address. [CLOSE] Close warmly, for example: Vielen Dank, dass Sie sich für V+ Versicherung entschieden haben. Den Link mit Ihrem Angebot und den restlichen Angaben erhalten Sie in Kürze per SMS, oder per E-Mail, falls gewünscht. Ich wünsche Ihnen einen schönen Tag. [PRODUKTWISSEN] You have a knowledge base with the full V+ Versicherung product and coverage catalogue. When the customer asks what is included, covered or excluded, the Selbstbehalt, the limits, or the difference between products, answer specifically and accurately from that knowledge in one or two short sentences. Do not invent coverage. [NO FILLER] Do not announce that you are calculating; just call the tool and state the result. [RULES] Only state prices the tool returns. Never give binding, legal or tax advice.\";\nvar firstEN = \"Hallo, hier ist V+ Versicherung. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie? (For English, just say English.)\";\nvar firstDE = \"Hallo, hier ist V+ Versicherung. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie?\";\nvar tts = vid ? { voice_id: vid } : {};\nvar body = {\n  name: \"V+ Versicherung — Lead Qualification\",\n  conversation_config: {\n    tts: tts,\n    agent: {\n      first_message: firstEN,\n      prompt: { prompt: PROMPT, llm: \"gemini-2.5-flash\", temperature: 0, tool_ids: [\"tool_9701kverhzztffcasbn13kkw225k\"], knowledge_base: [ { type: \"text\", name: \"V+ Versicherung Produkt- und Deckungskatalog (DE)\", id: \"kGsKCNOIUEdAFID3FztL\", usage_mode: \"prompt\" } ] }\n    },\n    language_presets: { de: { overrides: { asr: null, turn: null, tts: null, conversation: null, agent: { first_message: firstDE, language: null, max_conversation_duration_message: null, prompt: null } }, first_message_translation: null, soft_timeout_translation: null } }\n  }\n};\nreturn [{ json: { voice_id: vid, add_status:(r.statusCode!==undefined?r.statusCode:null), body: body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "0a338eb1-7f82-4c2d-9e8b-1af0c14f06c9",
+            "name": "Patch Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "9bf6331d-a3ae-468b-b2a8-dd4a6ac99203",
+            "name": "Delete Old KB",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/knowledge-base/LxONzOVsAAnLsp3vLf25",
+                "method": "DELETE",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "00f99322-b669-448c-9134-c74be69d6ee3",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                1120,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar del = $json;\nvar agent = $('Patch Agent').first().json; var ab = (agent.body!==undefined? agent.body: agent);\nvar ba = $('Build Agent').first().json;\nvar voice=\"\"; try{ voice = ab.conversation_config.tts.voice_id; }catch(e){}\nvar prm=\"\"; try{ prm = ab.conversation_config.agent.prompt.prompt.indexOf(\"schönen\")>=0 ? \"umlaut-ok\" : \"no\"; }catch(e){}\nreturn [{ json: { added_voice_id: ba.voice_id, add_status: ba.add_status, agent_status:(agent.statusCode!==undefined?agent.statusCode:null), agent_voice: voice, prompt_umlaut: prm, del_old_kb_status:(del.statusCode!==undefined?del.statusCode:null), agent_err: (ab.detail||null) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Add Voice",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Add Voice": {
+            "main": [
+                [
+                    {
+                        "node": "Build Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Patch Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Patch Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Delete Old KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Delete Old KB": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
