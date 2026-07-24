@@ -1,0 +1,140 @@
+{
+    "name": "Unica E2E Test (Simulate to Pega)",
+    "nodes": [
+        {
+            "id": "2a6fe80d-00ca-407e-b34f-d35583ca6527",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "2f8f05d6-d1d4-4acb-853d-af1afbba1503",
+            "name": "Simulate Conversation",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6/simulate-conversation",
+                "method": "POST",
+                "options": {
+                    "timeout": 290000
+                },
+                "jsonBody": {
+                    "simulation_specification": {
+                        "simulated_user_config": {
+                            "prompt": {
+                                "prompt": "Du bist ein Kunde, der eine Kfz-Haftpflichtversicherung abschliessen moechte. Antworte kurz. Daten: 90 kW, PLZ 1010, 5 schadenfreie Jahre, 1 Lenker. Name: Test Mueller, Handy +436601234567, E-Mail test.mueller@example.at. Gib die Daten an und beende dann das Gespraech."
+                            },
+                            "language": "de"
+                        }
+                    }
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "4f839f2d-d278-4f3c-8645-c8f4a7925dad",
+            "name": "Map Analysis to Case",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "jsCode": "const root = $input.first().json;\nconst analysis = root.analysis || (root.body && root.body.analysis) || {};\nconst dcr = analysis.data_collection_results || {};\nconst g = (k) => { const f = dcr[k]; if(!f) return ''; const v = (f.value!==undefined? f.value : f); return (v===null||v===undefined)? '' : v; };\nconst lob = String(g('line_of_business')).toLowerCase();\nconst map = { car:'MyOrg-CILMConv-Work-LeadCar', auto:'MyOrg-CILMConv-Work-LeadCar', liability:'MyOrg-CILMConv-Work-LeadLiability', home:'MyOrg-CILMConv-Work-LeadHomeContents', home_contents:'MyOrg-CILMConv-Work-LeadHomeContents', legal:'MyOrg-CILMConv-Work-LeadLegal', life:'MyOrg-CILMConv-Work-LeadLife' };\nconst caseTypeID = map[lob] || 'MyOrg-CILMConv-Work-LeadIntake';\nconst fullName=g('full_name'); const email=g('email'); const phone=g('mobile_phone')||g('phone'); const postalCode=g('postal_code'); const summary=g('conversation_summary'); const quote=g('indicative_quote');\nconst label='Lead: '+(fullName||'Unknown')+' - '+(lob||'n/a')+(phone?' - '+phone:'');\nconst d=[]; if(email)d.push('Email '+email); if(postalCode)d.push('PLZ '+postalCode); if(quote)d.push('Quote '+quote); if(summary)d.push(summary); d.push('via Unica voice (E2E)');\nconst description=d.join('; ');\nreturn [{ json: { caseTypeID, fullName, email, phone, postalCode, lineOfBusiness: lob, label, description } }];",
+                "language": "javaScript"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "1c7f4b83-0717-4494-a42c-368fa4ab56a7",
+            "name": "Create Pega Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": "={{ { \"caseTypeID\": $json.caseTypeID, \"content\": { \"pyLabel\": $json.label, \"pyDescription\": $json.description } } }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate Conversation",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map Analysis to Case": {
+            "main": [
+                [
+                    {
+                        "node": "Create Pega Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Simulate Conversation": {
+            "main": [
+                [
+                    {
+                        "node": "Map Analysis to Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
