@@ -1,0 +1,66 @@
+{
+    "name": "CILM — LeadLife casetype meta",
+    "nodes": [
+        {
+            "id": "8f301440-8a07-46c5-a6e2-f1a1b74890a7",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "9e74f07b-5375-418d-97ac-3fcd8f24b250",
+            "name": "GET LeadLife Casetype Meta",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes/MyOrg-CILMConv-Work-LeadLife",
+                "method": "GET",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "GET LeadLife Casetype Meta",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
