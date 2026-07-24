@@ -1,0 +1,140 @@
+{
+    "name": "Unica — coverage + edge sims",
+    "nodes": [
+        {
+            "id": "452dcc43-1c81-4641-bee7-772b9ef21b08",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "99a619ac-efc7-46d4-b02d-2c2513b64f3d",
+            "name": "Build",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar p = [\n {label:\"COV-Teilkasko\", persona:\"You are a German customer. Ask only: Was genau ist in der Teilkasko enthalten und was nicht? Keep it short. After a clear answer say Danke and end.\"},\n {label:\"COV-HomePlus\", persona:\"You are a German customer. Ask: Was deckt die Haushalt Plus, und ist Ueberschwemmung dabei? Then ask: Ist Ueberschwemmung auch in der Standard Variante? Keep short. After clear answers say Danke and end.\"},\n {label:\"COV-LifeDiff\", persona:\"You are a German customer. Ask: Was ist der Unterschied zwischen Risikoleben und der Vorsorge? Keep short. After a clear answer say Danke and end.\"},\n {label:\"COV-Liab\", persona:\"You are a German customer. Ask: Was deckt die Privathaftpflicht und bis zu welcher Summe? Keep short. After a clear answer say Danke and end.\"},\n {label:\"COV-Legal\", persona:\"You are a German customer. Ask: Was deckt der Rechtsschutz Kombi und gibt es eine Wartezeit? Keep short. After a clear answer say Danke and end.\"},\n {label:\"COV-OutOfCatalogue\", persona:\"You are a German customer. Ask: Deckt die Vollkasko auch Erdbebenschaeden am Auto? Keep short. After the answer say Danke and end.\"},\n {label:\"EDGE-Correction\", persona:\"You are a German customer wanting Kfz Vollkasko. Reply briefly. Give Vollkasko and Alter 38. When asked for kW say first 60 kW, then immediately correct to 90 kW. Then give Ort Wien, Fahrzeugwert 20000, 4 schadenfreie Jahre, 1 Lenker. Want estimate now. Name Jan Reiter, phone 0660 1010101. After closing say Danke and end.\"},\n {label:\"EDGE-MultiValue\", persona:\"You are a German customer. In one sentence say: Ich will eine Kfz Vollkasko, ich bin 45, 120 kW, in Graz, Fahrzeugwert 28000, 10 schadenfreie Jahre, ein Lenker. Then answer any remaining question briefly. Want estimate now. Name Klara Fuchs, phone 0676 2020202. After closing say Danke and end.\"},\n {label:\"EDGE-LineSwitch\", persona:\"You are a German customer. First say you want Haushaltsversicherung. After the agent asks one question, change your mind and say you actually want Kfz Haftpflicht instead. Then provide Alter 50, 80 kW, Ort Linz, 10 schadenfreie Jahre, 1 Lenker. Want estimate now. Name Otto Bauer, phone 0664 3030303. After closing say Danke and end.\"},\n {label:\"EDGE-English\", persona:\"You are an English speaking customer. Say English, then: I want car insurance, full comprehensive. Provide when asked: age 36, 105 kW, Vienna, vehicle value 22000, 6 claim-free years, one driver. Want the estimate now. Name Mike Short, phone 0676 4040404. After closing say thanks and end.\"},\n {label:\"EDGE-Ambiguous\", persona:\"You are a German customer. Say: Ich will mein Auto versichern, so ganz normal. Be vague. When the agent asks which coverage, say Vollkasko. Then provide Alter 41, 95 kW, Wien, 21000, 7 schadenfreie Jahre, 1 Lenker. Want estimate now. Name Rita Mayer, phone 0660 5050505. After closing say Danke and end.\"},\n {label:\"EDGE-Reise\", persona:\"You are a German customer asking for Reiseversicherung. Reply briefly. When the agent offers a specialist and asks for details, give name Paul Stern, phone 0664 6060606. Then say Danke and end.\"}\n];\nreturn p.map(function(x){ return { json: x }; });\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "d0c93b97-3ff2-4b69-acc3-d674758c1bb4",
+            "name": "Simulate",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6/simulate-conversation",
+                "method": "POST",
+                "options": {
+                    "timeout": 200000
+                },
+                "jsonBody": "={{ JSON.stringify({ simulation_specification: { simulated_user_config: { language: \"de\", prompt: { prompt: $json.persona } } }, new_turns_limit: 22 }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "62e22103-2cf3-4474-a15f-4decbeb1be1c",
+            "name": "Extract",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar items=$input.all(); var out=[];\nfor(var r=0;r<items.length;r++){\n var conv=items[r].json.simulated_conversation||[];\n var q=[], tools=[];\n for(var i=0;i<conv.length;i++){ var t=conv[i]; if(t.role===\"agent\" && t.message) q.push(t.message); if(t.tool_calls){ for(var j=0;j<t.tool_calls.length;j++){ var p={}; try{p=JSON.parse(t.tool_calls[j].params_as_json||\"{}\");}catch(e){} tools.push(p); } } }\n out.push({ json: { idx:r+1, agent_turns:q, tool_params:tools } });\n}\nreturn out;\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "73cf11db-b1ee-4ebb-9906-5c1793f2451f",
+            "name": "Collect",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "return [{ json: { runs: $input.all().map(function(i){ return i.json; }) } }];"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Build": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Build",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract": {
+            "main": [
+                [
+                    {
+                        "node": "Collect",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Simulate": {
+            "main": [
+                [
+                    {
+                        "node": "Extract",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
