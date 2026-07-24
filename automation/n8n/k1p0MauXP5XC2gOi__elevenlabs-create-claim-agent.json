@@ -1,0 +1,140 @@
+{
+    "name": "ElevenLabs Create Claim Agent",
+    "nodes": [
+        {
+            "id": "38212c4f-8211-496f-a5f9-2f1f8bb41ee8",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "38df8c21-3c9f-4ed1-a5a7-38eb4e5644b9",
+            "name": "Create Claim Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/create",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "name": "V+ Versicherung - Schadenmeldung (Claim)",
+                    "platform_settings": {
+                        "data_collection": {
+                            "email": {
+                                "type": "string",
+                                "description": "Customer email address"
+                            },
+                            "injuries": {
+                                "type": "boolean",
+                                "description": "True if there were any injuries"
+                            },
+                            "full_name": {
+                                "type": "string",
+                                "description": "Customer full legal name"
+                            },
+                            "consent_tcpa": {
+                                "type": "boolean",
+                                "description": "True if caller gave contact consent"
+                            },
+                            "date_of_loss": {
+                                "type": "string",
+                                "description": "Date the damage/incident occurred (YYYY-MM-DD)"
+                            },
+                            "mobile_phone": {
+                                "type": "string",
+                                "description": "Customer mobile phone number, digits only"
+                            },
+                            "loss_location": {
+                                "type": "string",
+                                "description": "Where the incident happened"
+                            },
+                            "policy_number": {
+                                "type": "string",
+                                "description": "Policy or contract number"
+                            },
+                            "estimated_amount": {
+                                "type": "string",
+                                "description": "Estimated damage amount if provided"
+                            },
+                            "line_of_business": {
+                                "type": "string",
+                                "description": "One of: car, home_contents, liability, legal, life"
+                            },
+                            "loss_description": {
+                                "type": "string",
+                                "description": "What happened - description of the damage/incident"
+                            },
+                            "preferred_language": {
+                                "type": "string",
+                                "description": "German or English"
+                            },
+                            "conversation_summary": {
+                                "type": "string",
+                                "description": "Concise summary of the claim and what the customer reported"
+                            },
+                            "third_party_involved": {
+                                "type": "boolean",
+                                "description": "True if another person/third party was involved"
+                            }
+                        }
+                    },
+                    "conversation_config": {
+                        "tts": {
+                            "model_id": "eleven_multilingual_v2",
+                            "voice_id": "EXAVITQu4vr4xnSDxMaL"
+                        },
+                        "agent": {
+                            "prompt": {
+                                "llm": "gemini-2.5-flash",
+                                "prompt": "Du bist 'V+ Versicherung', eine freundliche und empathische Assistentin fuer Schadenmeldungen. Standardsprache ist Deutsch. Wenn der Anrufer Englisch spricht oder 'English' sagt, wechsle sofort und vollstaendig zu Englisch.\n\nDeine Aufgabe: eine Schadenmeldung aufnehmen. Sei einfuehlsam - der Anrufer hatte gerade einen Schaden. Stelle kurze, klare Fragen, eine nach der anderen.\n\nErfasse:\n1. Polizzen-/Vertragsnummer (policy_number)\n2. Name (full_name)\n3. Handynummer (mobile_phone) und E-Mail (email)\n4. Sparte (line_of_business): Kfz=car, Haushalt=home_contents, Haftpflicht=liability, Rechtsschutz=legal, Leben=life\n5. Schadendatum (date_of_loss)\n6. Was ist passiert? (loss_description)\n7. Wo ist es passiert? (loss_location)\n8. War eine dritte Person beteiligt? (third_party_involved)\n9. Gab es Verletzte? (injuries)\n10. Geschaetzte Schadenhoehe, falls bekannt (estimated_amount)\n11. Einwilligung zur Kontaktaufnahme per Telefon/SMS (consent_tcpa)\n\nBestaetige die wichtigsten Angaben kurz. Am Ende: bedanke dich, sage dass die Schadenmeldung aufgenommen wurde und sich ein Sachbearbeiter meldet. Erfinde KEINE Schadennummern, Betraege oder Zusagen."
+                            },
+                            "language": "de",
+                            "first_message": "Hallo, hier ist V+ Versicherung, Schadenmeldung. Es tut mir leid, dass etwas passiert ist - ich nehme Ihre Schadenmeldung gerne auf. (For English, just say English.)"
+                        }
+                    }
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Claim Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
