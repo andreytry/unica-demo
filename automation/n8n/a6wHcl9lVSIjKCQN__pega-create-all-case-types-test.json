@@ -1,0 +1,248 @@
+{
+    "name": "Pega Create All Case Types (test)",
+    "nodes": [
+        {
+            "id": "c83278d3-0374-4731-a771-5eee0088c91f",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "7296ff5c-ca47-4558-9465-0b3a1341c4c3",
+            "name": "Create Car Insurance",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                    },
+                    "caseTypeID": "MyOrg-CILM-Work-CarInsurance"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "dc5351d3-b118-4f3a-90c5-e1ebd16c5d43",
+            "name": "Create Private Liability",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                    },
+                    "caseTypeID": "MyOrg-CILM-Work-PrivateLiability"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "b0b58e9b-2989-478d-b73a-7f459ef968a1",
+            "name": "Create Home Contents",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                    },
+                    "caseTypeID": "MyOrg-CILM-Work-HomeContents"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "fad98cee-8570-4978-a225-e04b651c618b",
+            "name": "Create Legal Expenses",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                    },
+                    "caseTypeID": "MyOrg-CILM-Work-LegalExpenses"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "94175248-3dd7-4225-a324-f7dafa029d33",
+            "name": "Create Life Insurance",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                1120,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                    },
+                    "caseTypeID": "MyOrg-CILM-Work-LifeInsurance"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Car Insurance",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Car Insurance": {
+            "main": [
+                [
+                    {
+                        "node": "Create Private Liability",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Home Contents": {
+            "main": [
+                [
+                    {
+                        "node": "Create Legal Expenses",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Legal Expenses": {
+            "main": [
+                [
+                    {
+                        "node": "Create Life Insurance",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Private Liability": {
+            "main": [
+                [
+                    {
+                        "node": "Create Home Contents",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
