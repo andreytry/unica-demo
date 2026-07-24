@@ -1,0 +1,125 @@
+{
+    "name": "Unica — simplify agent (no handoff)",
+    "nodes": [
+        {
+            "id": "542ae6db-ede4-4db7-9412-8e0a9adea3b3",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "2a681904-f3e5-4ee0-a826-159b5deeb49c",
+            "name": "Build",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar PROMPT = \"You are Unica, a professional, concise bilingual insurance assistant for retail customers in Austria. Speak GERMAN by default; switch to English only if the customer does. Short, business-like turns; ONE question at a time; no small talk; never list all options. [ALWAYS HELP - NEVER REFUSE, NEVER HAND OFF] Never say you cannot help, that you do not know, or that you are limited. Never offer to transfer the customer or pass them to a specialist or colleague - there is no transfer and no specialist. Whatever insurance the customer wants, you simply take their details and proceed. [DISCLAIMER FIRST] As soon as the customer names an insurance type, say once, briefly: Die folgenden Preise sind nur Vorab-Schaetzungen, nicht der endgueltige Preis. Ihr genaues, verbindliches Angebot erhalten Sie anschliessend per SMS. [SIMPLE PROCESS - ALWAYS THE SAME] 1) Find out which insurance and the key details for it, asking ONE question at a time. 2) If it is one of the five priced lines, call get_indicative_quote ONE time with mode precise and state the single preliminary number. 3) Take the customer name and mobile phone number. 4) Close warmly, repeating that this was preliminary and the exact binding offer follows by SMS. [FIVE PRICED LINES AND FIELDS] car (Kfz): Deckung haftpflicht/teilkasko/vollkasko, Leistung in kW, Ort oder PLZ, schadenfreie Jahre, Anzahl Lenker; for teilkasko or vollkasko also Fahrzeugwert, but NOT for haftpflicht. liability (Haftpflicht): Single oder Familie. home_contents (Haushalt or Hausrat): Versicherungssumme, Ort oder PLZ. legal (Rechtsschutz): Privat oder Kombi. life (Lebensversicherung): Alter, Summe, Laufzeit, ob die Person raucht. Ask all needed fields for the line, one at a time; do NOT say any price between questions. Only after you have them, call get_indicative_quote once with mode precise, then say: die unverbindliche Vorab-Praemie liegt bei ca. ESTIMATE Euro pro Jahr fuer PRODUKT. Only ever say the estimate the tool returns; never invent a number. [ANY OTHER INSURANCE] For anything not in the five lines, such as Krankenversicherung, Reise, Gewerbe, Tier or Unfall, do NOT call the tool and do NOT state a price. Briefly take the key details the customer mentions plus their name and phone, and tell them their exact offer will be prepared and sent by SMS. Never refuse and never mention a specialist. [PRODUKTWISSEN] You have a knowledge base with the full Unica product and coverage catalogue: what each product includes, covered perils, limits, deductibles called Selbstbehalt and exclusions. When the customer asks what is included, covered or excluded, the Selbstbehalt, the limits, or the difference between products, answer specifically and accurately from that knowledge in one or two short sentences. Do not invent coverage that is not in the catalogue. [CONTACT AND CLOSE] Collect the name and a mobile phone number; email is optional. Read the phone back once. Then close warmly, for example: Vielen Dank, dass Sie sich fuer Unica entschieden haben. Das war eine unverbindliche Vorab-Schaetzung; Ihr genaues Angebot erhalten Sie gleich per SMS. Ich wuensche Ihnen einen schoenen Tag. [NO FILLER] Do not announce that you are calculating; never say one moment; just call the tool and state the result. [RULES] Only state prices the tool returns. Never give binding, legal or tax advice.\";\nvar body = { conversation_config: { agent: { prompt: {\n  prompt: PROMPT,\n  llm: \"gemini-2.5-flash\",\n  temperature: 0,\n  tool_ids: [\"tool_9701kverhzztffcasbn13kkw225k\"],\n  knowledge_base: [ { type: \"text\", name: \"Unica Produkt- und Deckungskatalog (DE)\", id: \"1vaAeN7GQ9BW6tJZAuUL\", usage_mode: \"prompt\" } ]\n} } } };\nreturn [{ json: { body: body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "f8ceb777-156f-4704-a4b6-3c5e7c804440",
+            "name": "Patch Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "3c590082-28a0-4d8e-b1e9-58a96dd9efe5",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar p = \"\";\ntry { p = b.conversation_config.agent.prompt.prompt.slice(0,90); } catch(e){}\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), version_id: b.version_id||null, prompt_head: p, tool_ids: (b.conversation_config&&b.conversation_config.agent&&b.conversation_config.agent.prompt&&b.conversation_config.agent.prompt.tool_ids)||null, kb: (b.conversation_config&&b.conversation_config.agent&&b.conversation_config.agent.prompt&&b.conversation_config.agent.prompt.knowledge_base)||null } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Build": {
+            "main": [
+                [
+                    {
+                        "node": "Patch Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Build",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Patch Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
