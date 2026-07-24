@@ -1,0 +1,100 @@
+{
+    "name": "V+ — Claim agent simulate E2E",
+    "nodes": [
+        {
+            "id": "c09bd754-b9b7-421b-b141-04009fe5a740",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "5452668c-8cba-4a7e-89f7-c71fe2011233",
+            "name": "Simulate",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_2301kw8tntcnfc3tfmdac3qwde3d/simulate-conversation",
+                "method": "POST",
+                "options": {
+                    "timeout": 120000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ simulation_specification: { simulated_user_config: { first_message: \"Guten Tag, ich möchte einen Schaden melden.\", language: \"de\", prompt: { prompt: \"You are an Austrian customer reporting a car accident claim by phone. Answer ONE question at a time, briefly and naturally in German. Your facts: Polizzennummer KFZ-55512345; name Thomas Berger; phone 0676 5551234; it was a Kfz accident (Auffahrunfall) on 2026-06-25 in Graz, Hauptplatz; rear bumper damaged; nobody injured (nein); one other car involved (ja); estimated damage about 2500 Euro. Provide each fact only when the agent asks for it. After the agent reads back your claim/case number, say thank you and end politely.\" } } } }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "d23050ae-e822-4912-931d-dfc2aba00e0a",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar hist = b.simulated_conversation || b.conversation || [];\nvar lines = [];\nvar toolCalls = [];\nfor (var i=0;i<hist.length;i++){\n  var t = hist[i];\n  var who = t.role || (t.source) || \"?\";\n  if (t.message) lines.push(who + \": \" + t.message);\n  // capture tool calls\n  var tcs = t.tool_calls || (t.tool_call ? [t.tool_call] : []);\n  if (tcs && tcs.length){ for (var j=0;j<tcs.length;j++){ toolCalls.push(tcs[j].tool_name || tcs[j].name || \"tool\"); } }\n}\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), turns: lines.length, tool_calls: toolCalls, transcript: lines.join(\"\\n\") } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Simulate": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
