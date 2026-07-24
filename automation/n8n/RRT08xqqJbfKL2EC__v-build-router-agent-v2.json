@@ -1,0 +1,100 @@
+{
+    "name": "V+ — build router agent v2",
+    "nodes": [
+        {
+            "id": "57ee744b-8215-4058-afef-2055e2953d4c",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "344d6458-31ad-478c-aeca-c730ce356318",
+            "name": "Create Router",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/create",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ name: \"V+ Versicherung — Empfang\", conversation_config: { tts: { model_id:\"eleven_multilingual_v2\", voice_id:\"BtJhEZecBTSpKQ8EHRCJ\" }, agent: { language:\"de\", first_message:\"Hallo, hier ist V+ Versicherung. Möchten Sie ein Angebot für eine Versicherung, oder einen Schaden melden?\", prompt: { prompt:\"You are the V+ Versicherung reception. Speak GERMAN with correct umlauts ä ö ü ß; switch to English only if the caller does. Greet briefly and find out ONE thing: does the caller want (A) an insurance offer or a new policy, or (B) to report a claim (einen Schaden melden)? Ask one short question if unclear. As soon as the intent is clear, transfer the caller: A to the Lead Qualification agent, B to the Schadenmeldung agent. Do not collect any other details yourself, do not quote prices, do not take claim details - only route.\", llm:\"gemini-2.5-flash\", temperature:0, built_in_tools: { transfer_to_agent: { name:\"transfer_to_agent\", description:\"Transfer the caller to the right specialist agent.\", params: { system_tool_type:\"transfer_to_agent\", transfers: [ { agent_id:\"agent_3701kvdy0a45eywvg4yn9kw8pqv6\", condition:\"The caller wants an insurance offer, a quote, or a new policy\", delay_ms:0, transfer_message:\"Einen Moment, ich verbinde Sie mit der Angebotsberatung.\", enable_transferred_agent_first_message:true }, { agent_id:\"agent_2301kw8tntcnfc3tfmdac3qwde3d\", condition:\"The caller wants to report a claim, einen Schaden melden\", delay_ms:0, transfer_message:\"Einen Moment, ich verbinde Sie mit der Schadenmeldung.\", enable_transferred_agent_first_message:true } ] } } } } } } }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "9b970dfd-7044-42a1-a88f-d3cfdb7f1954",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), router_agent_id:(b.agent_id||null), err:(b.detail||null) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Router",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Router": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
