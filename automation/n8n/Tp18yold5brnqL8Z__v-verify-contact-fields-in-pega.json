@@ -1,0 +1,100 @@
+{
+    "name": "V+ — verify contact fields in Pega",
+    "nodes": [
+        {
+            "id": "0517feb6-68d0-4778-8c69-d23c8042e222",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "80a67507-e78b-4062-8608-74713289a678",
+            "name": "Create With Contacts",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ caseTypeID: \"MyOrg-CILM-Work-LeadIntake\", content: { ExternalConversationID: \"verify-contacts-001\", CustomerName: \"Max Mustermann\", CustomerPhone: \"06601234567\", CustomerEmail: \"max@example.at\", CustomerNumber: \"C-1001\", FullName: \"Max Mustermann\", MobilePhone: \"06601234567\", Email: \"max@example.at\" } }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Basic YWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "1f41cc5b-00e7-498f-99b5-813c876a6dff",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar msg = JSON.stringify(b);\nvar undef = [];\nvar fields = [\"CustomerName\",\"CustomerPhone\",\"CustomerEmail\",\"CustomerNumber\",\"FullName\",\"MobilePhone\",\"Email\"];\nfields.forEach(function(f){ if (msg.indexOf(\"pyWorkPage.\"+f)>=0) undef.push(f); });\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), case_id: (b.ID||null), undefined_fields: undef, raw: b } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create With Contacts",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create With Contacts": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
