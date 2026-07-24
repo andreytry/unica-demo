@@ -1,0 +1,323 @@
+{
+    "name": "VPlus — clean KB + tool",
+    "nodes": [
+        {
+            "id": "1b2d6719-4f75-4a94-acb9-28d5e1027a78",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "fd0bb483-5c0c-46d4-a69a-4e279d7e2243",
+            "name": "Prep KB",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar RAW = \"[UNICA PRODUKT- UND DECKUNGSKATALOG - Demo, Beispielwerte, kein verbindliches Bedingungswerk] [KFZ ALLGEMEIN] Drei Varianten: Haftpflicht, Komfort mit Teilkasko, Premium mit Vollkasko. Zahlung jaehrlich oder monatlich. Kuendigung zum Hauptfaelligkeitstag mit einem Monat Frist. [CAR-LIAB-STD Unica Kfz Haftpflicht] Gesetzlich verpflichtend. Deckt Personen-, Sach- und Vermoegensschaeden, die Sie mit dem Fahrzeug Dritten zufuegen, pauschal bis 15 Mio Euro. Inkludiert: Deckung im gesamten EWR, Gruene Karte, Abwicklung der motorbezogenen Versicherungssteuer. Optional zubuchbar: Lenkerunfall, Pannenhilfe. Nicht gedeckt: Schaeden am eigenen Fahrzeug, Vorsatz, nicht genehmigte Rennen. Selbstbehalt: keiner. [CAR-TK-COMFORT Unica Kfz Komfort, Haftpflicht plus Teilkasko] Enthaelt die volle Haftpflicht plus Teilkasko. Teilkasko deckt: Diebstahl und Raub, Brand und Explosion, Sturm, Hagel, Blitzschlag, Ueberschwemmung, Glasbruch, Schaeden durch Marderbiss inklusive Folgeschaeden, Zusammenstoss mit Wild. Neupreisentschaedigung in den ersten 12 Monaten. Selbstbehalt: 150 bis 300 Euro je Schaden. Nicht gedeckt: selbst verschuldete Unfallschaeden am eigenen Auto, Vandalismus. [CAR-VK-PREMIUM Unica Kfz Premium, Haftpflicht plus Vollkasko] Enthaelt Haftpflicht und die gesamte Teilkasko plus Vollkasko. Zusaetzlich gedeckt: selbst verschuldete Unfallschaeden am eigenen Fahrzeug, Vandalismus und mutwillige Beschaedigung, Schaeden durch unbekannte Dritte. Neupreisentschaedigung bis 24 Monate, Auslandsschadenschutz, Mietwagen- und Pannen-Assistance rund um die Uhr, Schutzbrief fuer Europa. Selbstbehalt frei waehlbar 300 oder 500 Euro. Optional: Bonusschutz, ein Schaden pro Jahr ohne Rueckstufung, sowie GAP-Deckung bei Leasing. [HAFTPFLICHT ALLGEMEIN] Die Privathaftpflicht schuetzt vor berechtigten Forderungen Dritter und wehrt unberechtigte Forderungen ab. [LIAB-SINGLE Unica Privathaftpflicht Single] Fuer Einzelpersonen. Deckt Personen-, Sach- und Vermoegensschaeden gegenueber Dritten bis 3 Mio Euro. Inkludiert: Schluesselverlust auch fuer fremde Schluessel, Mietsachschaeden an gemieteten Raeumen, Gefaelligkeitsschaeden, Halterhaftung fuer Kleintiere, weltweiter Schutz bis 12 Monate Aufenthalt. Nicht gedeckt: Vorsatz, eigene Sachen, Schaeden mit Kfz oder Boot, berufliche Taetigkeit. [LIAB-FAMILY Unica Privathaftpflicht Familie] Gilt fuer den gesamten Haushalt inklusive Partner und alle Kinder. Deckungssumme bis 5 Mio Euro. Zusaetzlich: deliktunfaehige Kinder mitversichert, Au-pair und Haushaltshilfe, Hundehalterhaftung optional zubuchbar. Sonst Leistungen wie Single. [HAUSHALT ALLGEMEIN] Die Haushaltsversicherung ersetzt den Hausrat zum Neuwert. Die Versicherungssumme soll dem gesamten Wert des Hausrats entsprechen, sonst droht Unterversicherung. [HC-STD Unica Haushalt Standard] Gedeckte Gefahren: Feuer also Brand, Blitz und Explosion, Leitungswasser, Sturm und Hagel, Einbruchdiebstahl und Raub, Vandalismus nach Einbruch. Inkludiert: Aufraeumkosten, begrenzte Hotelkosten nach Totalschaden, Glasbruch optional. Selbstbehalt typisch 0 bis 150 Euro. Nicht gedeckt: einfacher Diebstahl ohne Einbruch, Elementarschaeden wie Ueberschwemmung. [HC-PLUS Unica Haushalt Plus] Alles aus Standard plus: Elementarschaeden wie Ueberschwemmung, Hochwasser, Erdbeben, Lawinen und Schneedruck, Fahrraddiebstahl auch ausser Haus, erweiterte Glasbruchdeckung, Ueberspannungsschaeden an Elektrogeraeten durch Blitz, grobe Fahrlaessigkeit mitversichert, hoehere Limits fuer Wertsachen und Hotelkosten. Empfohlen in Hochwasserzonen oder bei hochwertigem Inventar. [RECHTSSCHUTZ ALLGEMEIN] Rechtsschutz uebernimmt Anwalts-, Gerichts-, Sachverstaendigen- und gegnerische Kosten im versicherten Bereich. Wartezeit in der Regel 3 Monate ausser bei Unfall. Freie Anwaltswahl. [LEGAL-PRIVATE Unica Rechtsschutz Privat] Bausteine: Schadenersatz-Rechtsschutz, Arbeitsgerichts-Rechtsschutz, Wohn- und Miet-Rechtsschutz, Sozialversicherungs-Rechtsschutz, Steuer-Rechtsschutz, Straf- und Verwaltungs-Rechtsschutz im Privatbereich. Deckungssumme bis 300000 Euro je Fall. Nicht gedeckt: vorsaetzliche Straftaten, teils Bau und Kauf von Immobilien. [LEGAL-COMBO Unica Rechtsschutz Kombi] Alles aus Privat plus Verkehrs-Rechtsschutz als Lenker, Halter, Insasse, Fussgaenger und Radfahrer, sowie Berufs-Rechtsschutz fuer Unselbststaendige. Inkludiert Fuehrerschein-Rechtsschutz und Fahrzeug-Vertrags-Rechtsschutz. Empfohlen fuer Vielfahrer. [LEBEN ALLGEMEIN] Zwei Konzepte: reine Risikoabsicherung oder Vorsorge mit Sparanteil. Gesundheitsfragen oder aerztliche Untersuchung je nach Summe. Bezugsberechtigte frei waehlbar. [LIFE-TERM-STD Unica Risikoleben] Reine Ablebensversicherung ohne Sparanteil. Bei Tod der versicherten Person waehrend der Laufzeit wird die vereinbarte Versicherungssumme steuerguenstig an die Beguenstigten ausbezahlt. Inkludiert: Nachversicherungsgarantie bei Heirat oder Geburt ohne neue Gesundheitspruefung, optional vorgezogene Leistung bei schwerer Krankheit. Karenz bei Suizid in den ersten Jahren. Guenstige Praemie, ideal zur Absicherung von Kredit oder Familie. [LIFE-VORSORGE Unica Leben Vorsorge] Er- und Ablebensversicherung mit Sparanteil. Bei Ableben wird die Summe ausbezahlt, bei Erleben die garantierte Ablaufleistung plus Gewinnbeteiligung. Inkludiert: garantierter Rechnungszins, Rueckkaufswert ab dem 2. Jahr, Beitragspause und Teilauszahlung moeglich, steuerliche Beguenstigung. Geeignet zum Vermoegensaufbau und zur Pensionsvorsorge. [ALLGEMEIN] Alle Preise im Gespraech sind Vorab-Schaetzungen und kein verbindliches Angebot. Deckungssummen, Selbstbehalte und Bausteine sind im finalen Angebot individuell anpassbar.\";\nvar CLEAN = RAW.replace(/unica/gi, function(m){ var up=m.toUpperCase(); if(m===up) return \"VPLUS\"; if(m.charAt(0)===m.charAt(0).toUpperCase()) return \"VPlus\"; return \"vplus\"; });\nreturn [{ json: { name: \"VPlus Produkt- und Deckungskatalog (DE)\", text: CLEAN, residual: (CLEAN.match(/unica/gi)||[]).length } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "df1746b2-e9d6-4453-9f16-14ad87db4d0d",
+            "name": "Create KB",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/knowledge-base/text",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ name: $json.name, text: $json.text }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "f2b5fab8-62f8-445d-bcb6-f3a34eae39f6",
+            "name": "Build Agent",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar newId = b.id || (b.document && b.document.id) || null;\nvar body = { conversation_config: { agent: { prompt: {\n  tool_ids: [\"tool_9701kverhzztffcasbn13kkw225k\"],\n  knowledge_base: [ { type: \"text\", name: \"VPlus Produkt- und Deckungskatalog (DE)\", id: newId, usage_mode: \"prompt\" } ]\n} } } };\nreturn [{ json: { newId: newId, create_status:(r.statusCode!==undefined?r.statusCode:null), body: body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "a77b7693-b35c-434b-8b83-35d90d6345fc",
+            "name": "Patch Agent KB",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "c1ff6c6a-c718-46f4-8d35-7f898d0002a4",
+            "name": "Get Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                1120,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/tools/tool_9701kverhzztffcasbn13kkw225k",
+                "method": "GET",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "32164c4c-fc37-4de8-80c3-b24cb80d2584",
+            "name": "Build Tool",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                1344,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar tc = b.tool_config || {};\ntc.description = \"Return a VPlus pre-quote. Call with mode quick after one or two basics for a rough ballpark, then again with mode precise once more rating fields are collected. Returns estimate (single number), indicative_range, refine_with (fields that would sharpen it), status and missing_fields.\";\nreturn [{ json: { body: { tool_config: tc } } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "73894ff3-979e-4752-b506-361f0fb68339",
+            "name": "Patch Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                1568,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/tools/tool_9701kverhzztffcasbn13kkw225k",
+                "method": "PATCH",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "e526f207-24a2-46de-8145-cd590010352f",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                1792,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar tool = $json; var tb = (tool.body!==undefined? tool.body : tool);\nvar newId = $('Build Agent').first().json.newId;\nvar agent = $('Patch Agent KB').first().json;\nvar toolDesc = \"\"; try { toolDesc = tb.tool_config.description.slice(0,40); } catch(e){}\nvar toolHasUnica = JSON.stringify(tb).replace(/unica-quote-v3/g,\"\").indexOf(\"Unica\")>=0;\nreturn [{ json: { new_kb_id: newId, agent_patch_status:(agent.statusCode!==undefined?agent.statusCode:null), tool_patch_status:(tool.statusCode!==undefined?tool.statusCode:null), tool_desc_head: toolDesc, tool_has_unica_excl_url: toolHasUnica } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Prep KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prep KB": {
+            "main": [
+                [
+                    {
+                        "node": "Create KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Build Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create KB": {
+            "main": [
+                [
+                    {
+                        "node": "Build Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Patch Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Patch Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Patch Agent KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Patch Agent KB": {
+            "main": [
+                [
+                    {
+                        "node": "Get Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
