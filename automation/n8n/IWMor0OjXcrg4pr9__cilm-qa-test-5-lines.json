@@ -1,0 +1,336 @@
+{
+    "name": "CILM — QA test 5 lines",
+    "nodes": [
+        {
+            "id": "336946fa-2ec0-483d-99f0-25c9af26490e",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "b9e66819-436e-4230-94ab-20c4fb83bf7d",
+            "name": "TC Car",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                -200
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "pyLabel": "QA Lead - car - Kfz VW Golf",
+                        "Deductibles": 300,
+                        "LeadCarName": "QA Kfz - VW Golf",
+                        "VehicleMake": "VW",
+                        "LicenseYears": 20,
+                        "VehicleModel": "Golf",
+                        "VehicleValue": 22000,
+                        "SourceChannel": "QA",
+                        "pyDescription": "QA test car; Vollkasko; Quote ~850 EUR/yr; via QA",
+                        "ClaimfreeYears": 7,
+                        "CurrentInsurer": "Generali",
+                        "CurrentPremium": 620,
+                        "NumberOfDrivers": 1,
+                        "AnnualKilometers": 15000,
+                        "YoungestDriverAge": 41,
+                        "GaragingPostalCode": "1010",
+                        "NoclaimsProtection": true,
+                        "FirstRegistrationYear": 2020,
+                        "ExternalConversationID": "qa-car"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadCar"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "2a9a9de8-167c-48ce-8871-296387ee37c3",
+            "name": "TC Liability",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                -100
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Intent": "new",
+                        "pyLabel": "QA Lead - liability - Familie",
+                        "pyDescription": "QA test liability; Haushalt Familie; sum 1.000.000 EUR; via QA",
+                        "CurrentInsurer": "Generali",
+                        "CurrentPremium": 90,
+                        "NumberOfAdults": 2,
+                        "DesiredStartDate": "2026-07-01",
+                        "NumberOfChildren": 2,
+                        "LeadLiabilityName": "QA Haftpflicht - Familie"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadLiability"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "ec1eb25f-2ff8-4b58-8ada-9d10c4cac2e9",
+            "name": "TC Home",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Rooms": 3,
+                        "pyLabel": "QA Lead - home_contents - Wien",
+                        "SumInsured": 50000,
+                        "pyDescription": "QA test home contents; PLZ 1010; Versicherungssumme 50.000 EUR; via QA",
+                        "SecurityFeatures": "alarm",
+                        "LeadHomeContentsName": "QA Hausrat - Wien"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadHomeContents"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "f3c89b18-5b0a-4156-bcf2-e9d0b48b168c",
+            "name": "TC Legal",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                100
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Intent": "new",
+                        "Modules": "kombi",
+                        "pyLabel": "QA Lead - legal - Kombi",
+                        "LeadLegalName": "QA Rechtsschutz - Kombi",
+                        "SourceChannel": "QA",
+                        "pyDescription": "QA test legal protection; Kombi; via QA",
+                        "CurrentInsurer": "ARAG",
+                        "CurrentPremium": 220,
+                        "DesiredStartDate": "2026-07-01",
+                        "ExternalConversationID": "qa-legal"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadLegal"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "b0fb866f-62b5-4050-a1aa-49a1830a6b50",
+            "name": "TC Life",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                200
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Purpose": "Family protection",
+                        "pyLabel": "QA Lead - life - Risikoleben",
+                        "InsuredAge": 35,
+                        "CoverageSum": 300000,
+                        "LeadLifeName": "QA Risikoleben",
+                        "InsuranceType": "life",
+                        "InsuredGender": "Male",
+                        "SourceChannel": "QA",
+                        "pyDescription": "QA test life; Risikoleben; 300.000 EUR / 20y; via QA",
+                        "CurrentInsurer": "Wiener Staedtische",
+                        "CurrentPremium": 300,
+                        "InsuredOccupation": "Teacher",
+                        "InsuredSmokerStatus": false,
+                        "ExternalConversationID": "qa-life"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadLife"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "TC Car",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "TC Car": {
+            "main": [
+                [
+                    {
+                        "node": "TC Liability",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "TC Home": {
+            "main": [
+                [
+                    {
+                        "node": "TC Legal",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "TC Legal": {
+            "main": [
+                [
+                    {
+                        "node": "TC Life",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "TC Liability": {
+            "main": [
+                [
+                    {
+                        "node": "TC Home",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
