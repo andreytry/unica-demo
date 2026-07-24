@@ -1,0 +1,114 @@
+{
+    "name": "Pega Write+Read InsuranceLead",
+    "nodes": [
+        {
+            "id": "5e4e0383-c216-43e4-ba57-aa44b13bf4f9",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "1b07cd49-0b29-40cb-9b80-37aae1148638",
+            "name": "Create with InsuranceLead",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                        "InsuranceLead": {
+                            "City": "Wien",
+                            "Email": "test@example.com",
+                            "Phone": "+436601234567",
+                            "LastName": "Lead",
+                            "FirstName": "Test",
+                            "PostalCode": "1010",
+                            "InsuranceType": "car"
+                        }
+                    },
+                    "caseTypeID": "MyOrg-CILM-Work-LeadIntake"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "c474f822-03bb-4785-ae97-7023dfd02c5e",
+            "name": "Read back",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "={{ 'https://2s8uoi5i.pegace.net/prweb/api/v1/cases/' + encodeURIComponent($json.ID) }}",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create with InsuranceLead",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create with InsuranceLead": {
+            "main": [
+                [
+                    {
+                        "node": "Read back",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
