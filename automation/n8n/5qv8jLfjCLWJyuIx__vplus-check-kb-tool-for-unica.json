@@ -1,0 +1,137 @@
+{
+    "name": "VPlus — check KB + tool for Unica",
+    "nodes": [
+        {
+            "id": "8d4dc9fc-2666-4ee6-a8d0-bdda0775a6e3",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "f3dc17d6-c1c3-4c0a-8d22-f57a3fc90f0a",
+            "name": "KB Content",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/knowledge-base/1vaAeN7GQ9BW6tJZAuUL/content",
+                "method": "GET",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true,
+                            "responseFormat": "text"
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "c26387b2-b7d4-45e9-ab88-724c804c65f9",
+            "name": "Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/tools/tool_9701kverhzztffcasbn13kkw225k",
+                "method": "GET",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "8b706090-5719-4f2a-8a56-1c322dfd3661",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar kbr = $('KB Content').first().json;\nvar kbBody = (kbr.body!==undefined? kbr.body : kbr);\nvar kbText = (typeof kbBody === \"string\") ? kbBody : JSON.stringify(kbBody);\nvar kbHasUnica = kbText.indexOf(\"Unica\")>=0 || kbText.indexOf(\"UNICA\")>=0 || kbText.indexOf(\"unica\")>=0;\nvar unicaCount = (kbText.match(/Unica/gi)||[]).length;\nvar t = $json; var tb = (t.body!==undefined? t.body : t);\nreturn [{ json: { kb_status:(kbr.statusCode!==undefined?kbr.statusCode:null), kb_len: kbText.length, kb_has_unica: kbHasUnica, kb_unica_count: unicaCount, kb_head: kbText.slice(0,400), tool_status:(t.statusCode!==undefined?t.statusCode:null), tool_body: tb } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Tool": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "KB Content",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "KB Content": {
+            "main": [
+                [
+                    {
+                        "node": "Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
