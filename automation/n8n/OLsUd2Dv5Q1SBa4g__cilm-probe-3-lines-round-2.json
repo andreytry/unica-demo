@@ -1,0 +1,224 @@
+{
+    "name": "CILM — probe 3 lines round 2",
+    "nodes": [
+        {
+            "id": "eae5709f-8e5c-413f-93e6-eca2be8978eb",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "e9222446-3c1f-46f0-8004-8f73efa81f3e",
+            "name": "Probe Liability 2",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "ZZZJunk": "x",
+                        "IncludeDog": false,
+                        "InsuredSum": 1000000,
+                        "PolicyType": "private",
+                        "SumInsured": 1000000,
+                        "PackageType": "standard",
+                        "FamilyStatus": "family",
+                        "MaritalStatus": "married",
+                        "CoverageAmount": 1000000,
+                        "NumberOfAdults": 2,
+                        "IncludeChildren": true,
+                        "DesiredStartDate": "2026-07-01",
+                        "IndicativeMaximum": 0,
+                        "IndicativeMinimum": 0,
+                        "QualificationResult": "x"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadLiability"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "5b8c4c17-a32e-4478-9805-d61d08d3ec0d",
+            "name": "Probe Home 2",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "City": "Wien",
+                        "Rooms": 3,
+                        "Region": "Wien",
+                        "ZZZJunk": "x",
+                        "ZipCode": "1010",
+                        "HasAlarm": true,
+                        "Location": "Wien",
+                        "Ownership": "owner",
+                        "InsuredSum": 50000,
+                        "SumInsured": 50000,
+                        "ContentsSum": 50000,
+                        "LivingSpace": 80,
+                        "BuildingType": "apartment",
+                        "InsuranceSum": 50000,
+                        "SquareMeters": 80,
+                        "OwnerOrRenter": "owner",
+                        "CoverageAmount": 50000,
+                        "LivingSpaceSqm": 80
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadHomeContents"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "3e0a882d-326d-44d0-b4c5-020c9c777989",
+            "name": "Probe Legal 2",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Scope": "private",
+                        "Modules": "private",
+                        "ZZZJunk": "x",
+                        "Deductible": 150,
+                        "InsuredSum": 100000,
+                        "SumInsured": 100000,
+                        "PackageType": "kombi",
+                        "HousingModule": false,
+                        "PrivateModule": true,
+                        "TrafficModule": true,
+                        "CoverageAmount": 100000,
+                        "FamilyOrSingle": "family",
+                        "DesiredStartDate": "2026-07-01",
+                        "EmploymentModule": true,
+                        "NumberOfChildren": 1
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadLegal"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Probe Liability 2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Probe Home 2": {
+            "main": [
+                [
+                    {
+                        "node": "Probe Legal 2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Probe Liability 2": {
+            "main": [
+                [
+                    {
+                        "node": "Probe Home 2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
