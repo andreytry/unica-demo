@@ -1,0 +1,92 @@
+{
+    "name": "V+ — find German voice",
+    "nodes": [
+        {
+            "id": "c9a72c15-3380-47aa-b526-a30bfb37aeb5",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "cd88c3c6-3253-45fb-9891-8962bb03cbc8",
+            "name": "German Voices",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/shared-voices?page_size=30&language=de",
+                "method": "GET",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "723cbb19-d68f-43a8-9c26-ca2b5b2390ff",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar vs = (b.voices)||[];\nvar picked = vs.map(function(v){\n  var langs = (v.verified_languages||[]).map(function(l){return l.language;});\n  return { id: v.voice_id, name: v.name, gender: (v.gender||\"\"), accent:(v.accent||\"\"), desc:(v.descriptive||\"\"), use:(v.use_case||\"\"), langs: langs, lang: v.language };\n}).filter(function(v){ return (v.lang===\"de\") || (v.langs.indexOf(\"de\")>=0) || (v.accent||\"\").toLowerCase().indexOf(\"german\")>=0; }).slice(0,12);\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), count: vs.length, german: picked } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "German Voices",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "German Voices": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
