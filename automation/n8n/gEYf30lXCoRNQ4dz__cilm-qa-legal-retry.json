@@ -1,0 +1,83 @@
+{
+    "name": "CILM — QA legal retry",
+    "nodes": [
+        {
+            "id": "db180ffb-b348-4379-9821-49570d5dcdfa",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "6e6841d9-52b4-430e-8025-5c93f6fdd14b",
+            "name": "TC Legal 2",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Intent": "new",
+                        "pyLabel": "QA Lead - legal - Kombi",
+                        "LeadLegalName": "QA Rechtsschutz - Kombi",
+                        "SourceChannel": "QA",
+                        "pyDescription": "QA test legal protection; Modul Kombi (privat+verkehr+beruf); via QA",
+                        "CurrentInsurer": "ARAG",
+                        "CurrentPremium": 220,
+                        "DesiredStartDate": "2026-07-01",
+                        "ExternalConversationID": "qa-legal"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadLegal"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "TC Legal 2",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
