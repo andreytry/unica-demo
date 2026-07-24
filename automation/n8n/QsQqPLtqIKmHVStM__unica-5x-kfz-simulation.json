@@ -1,0 +1,140 @@
+{
+    "name": "Unica — 5x KFZ simulation",
+    "nodes": [
+        {
+            "id": "3b942a0d-2f01-4df8-a2d6-2aac1d2f3c6e",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "f1113cf5-6fa4-4a9d-9a89-5e50f1788f73",
+            "name": "Build Runs",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "return [1,2,3,4,5].map(function(n){ return { json: { run: n } }; });"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "060a40c3-cd40-4117-b960-b179b15b7b07",
+            "name": "Simulate",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6/simulate-conversation",
+                "method": "POST",
+                "options": {
+                    "timeout": 290000
+                },
+                "jsonBody": "{\n  \"simulation_specification\": {\n    \"simulated_user_config\": {\n      \"language\": \"de\",\n      \"prompt\": {\n        \"prompt\": \"You are a German speaking customer in Austria contacting Unica. You want a Kfz car insurance quote. Reply briefly and naturally in German. Give only the detail that is asked, do not list everything at once. Use exactly these facts when asked: Deckung ist Vollkasko; Alter 42; Motorleistung 110 kW; Wohnort Wien; Fahrzeugwert 25000 Euro; 8 schadenfreie Jahre; ein Lenker; keine besonderen Wuensche. You want the estimate now and you do NOT want to be passed to a specialist. Your name is Max Mustermann and your phone number is 0660 1234567; give them when asked. After you receive the price and the closing, say goodbye to end the conversation.\"\n      }\n    }\n  },\n  \"new_turns_limit\": 30\n}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "f4aa14d8-736b-475a-974f-7dc47e881f9c",
+            "name": "Extract",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nconst runs = $input.all();\nconst out = [];\nfor(var r=0;r<runs.length;r++){\n  var conv = runs[r].json.simulated_conversation || [];\n  var questions=[], toolCalls=[], toolResults=[];\n  for(var i=0;i<conv.length;i++){\n    var t=conv[i];\n    if(t.role===\"agent\" && t.message){ questions.push(t.message); }\n    if(t.tool_calls){ for(var j=0;j<t.tool_calls.length;j++){ var tc=t.tool_calls[j]; var p={}; try{ p=JSON.parse(tc.params_as_json||\"{}\"); }catch(e){ p={raw:tc.params_as_json}; } toolCalls.push({tool:tc.tool_name, params:p}); } }\n    if(t.tool_results){ for(var k=0;k<t.tool_results.length;k++){ var tr=t.tool_results[k]; var v=tr.result_value; try{ v=JSON.parse(tr.result_value); }catch(e){} toolResults.push(v); } }\n  }\n  var quote=null;\n  for(var m=toolResults.length-1;m>=0;m--){ if(toolResults[m] && toolResults[m].estimate){ quote=toolResults[m]; break; } }\n  var finalParams = toolCalls.length? toolCalls[toolCalls.length-1].params : null;\n  out.push({ json: {\n    run: r+1,\n    num_agent_turns: questions.length,\n    agent_questions: questions,\n    tool_calls: toolCalls,\n    collected_final: finalParams,\n    quote: quote ? { product: (quote.recommended_product? quote.recommended_product.ProductName:null), estimate: quote.estimate, low: (quote.indicative_range?quote.indicative_range.low:null), high: (quote.indicative_range?quote.indicative_range.high:null) } : null\n  } });\n}\nreturn out;\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "789dbafe-7033-42b8-adc5-b2f814c111d4",
+            "name": "Collect",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "return [{ json: { runs: $input.all().map(function(i){ return i.json; }) } }];"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Build Runs",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Extract": {
+            "main": [
+                [
+                    {
+                        "node": "Collect",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Simulate": {
+            "main": [
+                [
+                    {
+                        "node": "Extract",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Runs": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
