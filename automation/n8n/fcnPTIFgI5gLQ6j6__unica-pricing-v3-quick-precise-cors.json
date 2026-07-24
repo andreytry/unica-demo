@@ -1,0 +1,81 @@
+{
+    "name": "Unica Pricing v3 — Quick + Precise (CORS)",
+    "nodes": [
+        {
+            "id": "8a9197aa-2444-4b40-a9ed-302b74f2948d",
+            "name": "Quote Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                0,
+                0
+            ],
+            "webhookId": "9a255590-a7ca-4d3a-8491-5a1eaf0c9553",
+            "parameters": {
+                "path": "unica-quote-v3",
+                "options": {
+                    "allowedOrigins": "*"
+                },
+                "httpMethod": "POST",
+                "responseMode": "responseNode"
+            },
+            "typeVersion": 2.1
+        },
+        {
+            "id": "702abbd7-fa7a-40a0-b928-db1f58a91dfd",
+            "name": "Quote",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nconst inItem = $input.first().json;\nconst body = (inItem && inItem.body) ? inItem.body : inItem;\nfunction norm(s){ if(s===undefined||s===null) return \"\"; return String(s).toLowerCase().trim(); }\nfunction num(s){ const n = Number(s); return isFinite(n) ? n : 0; }\nfunction isSet(v){ return !(v===undefined||v===null||String(v).trim()===\"\"); }\nfunction clamp(v,a,b){ return v<a?a:(v>b?b:v); }\nfunction round10(n){ var r = Math.round(n/10)*10; return r<10?10:r; }\nfunction regionF(r){ var x=norm(r); if(x.indexOf(\"wien\")>=0||(x.length>=4&&x.charAt(0)===\"1\"))return 1.15; if(x.indexOf(\"graz\")>=0||x.indexOf(\"linz\")>=0||x.indexOf(\"salzburg\")>=0)return 1.07; return 1.0; }\n\nconst DISC = \"Vorlaeufiger Richtwert. Das genaue Angebot erstellen wir anschliessend nach kurzer Pruefung.\";\n\nconst CATALOG = {\n  car:[{ProductCode:\"CAR-LIAB-STD\",ProductName:\"Unica Kfz Haftpflicht\",base:480},{ProductCode:\"CAR-TK-COMFORT\",ProductName:\"Unica Kfz Komfort (Haftpflicht + Teilkasko)\",base:760},{ProductCode:\"CAR-VK-PREMIUM\",ProductName:\"Unica Kfz Premium (Haftpflicht + Vollkasko)\",base:1180}],\n  liability:[{ProductCode:\"LIAB-SINGLE\",ProductName:\"Unica Privathaftpflicht Single\",base:70},{ProductCode:\"LIAB-FAMILY\",ProductName:\"Unica Privathaftpflicht Familie\",base:95}],\n  home_contents:[{ProductCode:\"HC-STD\",ProductName:\"Unica Haushalt Standard\",rate:0.0016},{ProductCode:\"HC-PLUS\",ProductName:\"Unica Haushalt Plus\",rate:0.0022}],\n  legal:[{ProductCode:\"LEGAL-PRIVATE\",ProductName:\"Unica Rechtsschutz Privat\",base:230},{ProductCode:\"LEGAL-COMBO\",ProductName:\"Unica Rechtsschutz Kombi\",base:360}],\n  life:[{ProductCode:\"LIFE-TERM-STD\",ProductName:\"Unica Risikoleben\",rate:0.0009},{ProductCode:\"LIFE-VORSORGE\",ProductName:\"Unica Leben Vorsorge\",rate:0.0021}]\n};\nfunction pick(line,code){ var a=CATALOG[line]; for(var i=0;i<a.length;i++){ if(a[i].ProductCode===code) return a[i]; } return a[0]; }\nfunction mapLine(raw){ var s=norm(raw); function has(arr){ for(var i=0;i<arr.length;i++){ if(s.indexOf(arr[i])>=0) return true; } return false; }\n  if(has([\"car\",\"auto\",\"kfz\",\"pkw\",\"fahrzeug\",\"automobil\"]))return \"car\";\n  if(has([\"haftpflicht\",\"liability\"]))return \"liability\";\n  if(has([\"hausrat\",\"haushalt\",\"home\",\"contents\",\"eigenheim\",\"wohnung\",\"inhalt\"]))return \"home_contents\";\n  if(has([\"rechtsschutz\",\"legal\",\"recht\"]))return \"legal\";\n  if(has([\"leben\",\"life\",\"vorsorge\",\"risikoleben\"]))return \"life\";\n  return \"\"; }\n\nconst mode = (norm(body.mode)===\"quick\")?\"quick\":\"precise\";\nconst line = mapLine(body.line_of_business);\nfunction out(o){ o.mode=mode; o.disclaimer=DISC; return [{ json:o }]; }\n\nif(!line){\n  return out({ status:\"Disqualified\", line:norm(body.line_of_business)||\"unknown\", recommended_product:null, estimate:null, indicative_range:null, refine_with:[], rationale:\"Diese Versicherungsart wird aktuell nicht angeboten. Ein Spezialist meldet sich.\", missing_fields:[], next_step:\"pass_to_specialist\" });\n}\n\nvar required=[], optional=[], prod=null, mid=0, rationale=\"\";\n\nif(line===\"car\"){\n  var cov=norm(body.coverage), kasko=(cov.indexOf(\"voll\")>=0||cov.indexOf(\"teil\")>=0||cov.indexOf(\"kasko\")>=0);\n  required=[\"coverage\",\"driver_age\",\"power_kw\",\"region\"]; if(kasko) required.push(\"vehicle_value\");\n  optional=[\"claims_free_years\",\"num_drivers\"];\n  var code=\"CAR-LIAB-STD\"; if(cov.indexOf(\"voll\")>=0)code=\"CAR-VK-PREMIUM\"; else if(cov.indexOf(\"teil\")>=0)code=\"CAR-TK-COMFORT\"; if(!isSet(body.coverage))code=\"CAR-TK-COMFORT\";\n  prod=pick(\"car\",code);\n  var age=isSet(body.driver_age)?num(body.driver_age):40;\n  var power=isSet(body.power_kw)?num(body.power_kw):90;\n  var value=isSet(body.vehicle_value)?num(body.vehicle_value):20000;\n  var drivers=isSet(body.num_drivers)?num(body.num_drivers):1;\n  var bm; if(isSet(body.bonus_malus))bm=num(body.bonus_malus); else if(isSet(body.claims_free_years))bm=clamp(1.0-num(body.claims_free_years)*0.05,0.5,1.2); else bm=1.0;\n  var ageF=1.0; if(age<23)ageF=1.45; else if(age<25)ageF=1.30; else if(age<30)ageF=1.18; else if(age<40)ageF=1.06; else if(age<60)ageF=1.0; else if(age<70)ageF=1.12; else ageF=1.30;\n  var powerF=1+Math.max(0,(power-70))*0.006;\n  var driversF=1+Math.max(0,drivers-1)*0.08;\n  var valueF=(code===\"CAR-LIAB-STD\")?1.0:clamp(value/20000,0.6,3.0);\n  mid=prod.base*ageF*powerF*regionF(body.region)*bm*driversF*valueF;\n  rationale=prod.ProductName+\", \"+age+\" J., \"+power+\" kW, BM \"+bm.toFixed(2)+\".\";\n} else if(line===\"liability\"){\n  required=[\"household\",\"region\"]; optional=[\"deductible\"];\n  var fam=norm(body.household).indexOf(\"famil\")>=0; prod=pick(\"liability\",fam?\"LIAB-FAMILY\":\"LIAB-SINGLE\");\n  mid=prod.base*(regionF(body.region)>1.1?1.05:1.0);\n  rationale=prod.ProductName+\".\";\n} else if(line===\"home_contents\"){\n  required=[\"contents_value\",\"region\"]; optional=[\"coverage\",\"security\"];\n  var cv=isSet(body.contents_value)?num(body.contents_value):30000, hcov=norm(body.coverage);\n  prod=pick(\"home_contents\",(hcov.indexOf(\"plus\")>=0||hcov.indexOf(\"premium\")>=0)?\"HC-PLUS\":\"HC-STD\");\n  var secF=(norm(body.security).indexOf(\"alarm\")>=0||norm(body.security).indexOf(\"sicher\")>=0)?0.95:1.0;\n  mid=cv*prod.rate*regionF(body.region)*secF;\n  rationale=prod.ProductName+\", Summe \"+cv+\" Euro.\";\n} else if(line===\"legal\"){\n  required=[]; optional=[\"coverage\"];\n  var lcov=norm(body.coverage);\n  prod=pick(\"legal\",(lcov.indexOf(\"kombi\")>=0||lcov.indexOf(\"combo\")>=0||lcov.indexOf(\"verkehr\")>=0||lcov.indexOf(\"beruf\")>=0)?\"LEGAL-COMBO\":\"LEGAL-PRIVATE\");\n  mid=prod.base; rationale=prod.ProductName+\".\";\n} else if(line===\"life\"){\n  required=[\"age\",\"sum_assured\",\"term_years\",\"tobacco\"]; optional=[\"coverage\"];\n  var vcov=norm(body.coverage);\n  prod=pick(\"life\",(vcov.indexOf(\"vorsorge\")>=0||vcov.indexOf(\"spar\")>=0||vcov.indexOf(\"erleben\")>=0)?\"LIFE-VORSORGE\":\"LIFE-TERM-STD\");\n  var lage=isSet(body.age)?num(body.age):(isSet(body.driver_age)?num(body.driver_age):40);\n  var sa=isSet(body.sum_assured)?num(body.sum_assured):100000;\n  var term=isSet(body.term_years)?num(body.term_years):15;\n  var laf=1.0; if(lage<30)laf=0.7; else if(lage<40)laf=1.0; else if(lage<50)laf=1.7; else if(lage<60)laf=3.0; else if(lage<66)laf=4.5; else laf=6.0;\n  var tr=norm(body.tobacco), tob=(body.tobacco===true||tr.indexOf(\"ja\")>=0||tr.indexOf(\"yes\")>=0||tr.indexOf(\"rauch\")>=0||tr.indexOf(\"smok\")>=0);\n  var tobF=tob?1.6:1.0, termF=1+Math.max(0,(term-10))*0.015;\n  mid=sa*prod.rate*laf*tobF*termF;\n  rationale=prod.ProductName+\", \"+lage+\" J., Summe \"+sa+\" Euro, \"+term+\" Jahre.\";\n}\n\nvar reqMissing=[]; for(var i=0;i<required.length;i++){ var f=required[i]; if(f===\"age\"){ if(!isSet(body.age)&&!isSet(body.driver_age)) reqMissing.push(\"age\"); } else if(!isSet(body[f])) reqMissing.push(f); }\nvar optMissing=[]; for(var j=0;j<optional.length;j++){ if(!isSet(body[optional[j]])) optMissing.push(optional[j]); }\nvar refine = reqMissing.concat(optMissing);\n\nif(mode===\"precise\" && reqMissing.length>0){\n  return out({ status:\"NeedsReview\", line:line, recommended_product:prod?{ProductCode:prod.ProductCode,ProductName:prod.ProductName}:null, estimate:null, indicative_range:null, refine_with:refine, rationale:\"Fuer eine genaue Berechnung fehlen noch Angaben.\", missing_fields:reqMissing, next_step:\"collect_missing\" });\n}\n\nvar est=round10(mid);\nvar spread=(mode===\"quick\")?0.15:0.04;\nreturn out({\n  status:(mode===\"quick\"?\"Quick\":\"Qualified\"),\n  line:line,\n  recommended_product:{ProductCode:prod.ProductCode,ProductName:prod.ProductName},\n  estimate:est,\n  indicative_range:{ low:round10(mid*(1-spread)), high:round10(mid*(1+spread)), currency:\"EUR\", per:\"year\" },\n  refine_with:refine,\n  rationale:rationale,\n  missing_fields:[],\n  next_step:(mode===\"quick\"?\"refine_estimate\":\"offer_consultation_booking\")\n});\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "bebdaa48-67c2-4e58-89ab-9ace69cde369",
+            "name": "Respond",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "options": {
+                },
+                "respondWith": "firstIncomingItem"
+            },
+            "typeVersion": 1.1
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Quote": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Quote Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Quote",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
