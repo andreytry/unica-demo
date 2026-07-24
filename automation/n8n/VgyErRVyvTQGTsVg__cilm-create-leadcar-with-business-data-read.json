@@ -1,0 +1,124 @@
+{
+    "name": "CILM — Create LeadCar with business data + read",
+    "nodes": [
+        {
+            "id": "f559471e-9a47-49c3-80a2-fcc2ba9b1c4a",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "8b9c7349-f3c4-42f2-9a44-cc1df211fbbf",
+            "name": "Create LeadCar (business data)",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                        "Email": "max.huber@example.at",
+                        "LastName": "Huber",
+                        "FirstName": "Maximilian",
+                        "LeadSource": "ElevenLabs Voice",
+                        "PostalCode": "1010",
+                        "MobilePhone": "+43 660 1234567",
+                        "InsuranceLead": {
+                            "FuelType": "Petrol",
+                            "Deductible": 300,
+                            "VehicleMake": "Volkswagen",
+                            "CoverageType": "Vollkasko",
+                            "VehicleModel": "Golf 1.5 TSI",
+                            "AnnualMileage": 12000,
+                            "BonusMalusLevel": 3,
+                            "DesiredStartDate": "2026-07-01",
+                            "YearOfManufacture": 2019
+                        },
+                        "InterestedLine": "car",
+                        "PreferredLanguage": "DE"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadCar"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "48977478-3d49-4fe4-8582-bb9dd09cb5b5",
+            "name": "Read LeadCar Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "={{ \"https://2s8uoi5i.pegace.net/prweb/api/v1/cases/\" + encodeURIComponent($json.ID) }}",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create LeadCar (business data)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create LeadCar (business data)": {
+            "main": [
+                [
+                    {
+                        "node": "Read LeadCar Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
