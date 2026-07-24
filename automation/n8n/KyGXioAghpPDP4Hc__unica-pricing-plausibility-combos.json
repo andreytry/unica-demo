@@ -1,0 +1,104 @@
+{
+    "name": "Unica — pricing plausibility combos",
+    "nodes": [
+        {
+            "id": "01012cfb-105f-49b2-a815-55352cf49110",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "5ea61912-d450-4455-83d3-80fff2433729",
+            "name": "Build Combos",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar combos = [\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"vollkasko\",driver_age:23,power_kw:150,region:\"Wien\",vehicle_value:40000,claims_free_years:0,num_drivers:1},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"vollkasko\",driver_age:45,power_kw:85,region:\"Graz\",vehicle_value:18000,claims_free_years:12,num_drivers:2},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"teilkasko\",driver_age:35,power_kw:100,region:\"Salzburg\",vehicle_value:22000,claims_free_years:5,num_drivers:1},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"haftpflicht\",driver_age:60,power_kw:66,region:\"Linz\",claims_free_years:20,num_drivers:1},\n {line_of_business:\"Lebensversicherung\",mode:\"precise\",coverage:\"risiko\",age:35,sum_assured:200000,term_years:25,tobacco:false},\n {line_of_business:\"Lebensversicherung\",mode:\"precise\",age:55,sum_assured:150000,term_years:15,tobacco:true},\n {line_of_business:\"Haushalt\",mode:\"precise\",contents_value:50000,region:\"Wien\",coverage:\"plus\",security:\"alarm\"},\n {line_of_business:\"Haftpflicht\",mode:\"precise\",household:\"familie\",region:\"Graz\"}\n];\nreturn combos.map(function(c){ return { json: c }; });\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "cc96b94e-e188-48e3-84b6-b812691aba0f",
+            "name": "Price",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://ai-process.app.n8n.cloud/webhook/unica-quote-v3",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": "={{ JSON.stringify($json) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "specifyBody": "json"
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "dd0e8667-8ef2-4fb7-91d9-29bf25cf99fb",
+            "name": "Collect",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nreturn [{ json: { runs: $input.all().map(function(i){ var j=i.json; return { line:j.line, status:j.status, product:(j.recommended_product?j.recommended_product.ProductName:null), estimate:j.estimate, low:(j.indicative_range?j.indicative_range.low:null), high:(j.indicative_range?j.indicative_range.high:null), rationale:j.rationale, next_step:j.next_step }; }) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Price": {
+            "main": [
+                [
+                    {
+                        "node": "Collect",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Build Combos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Combos": {
+            "main": [
+                [
+                    {
+                        "node": "Price",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
