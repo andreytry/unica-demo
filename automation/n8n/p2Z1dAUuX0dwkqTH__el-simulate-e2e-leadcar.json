@@ -1,0 +1,81 @@
+{
+    "name": "EL — simulate E2E LeadCar",
+    "nodes": [
+        {
+            "id": "2f20c0e3-42de-4234-b99c-4597f920255a",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "baaa7066-d886-4bf8-a3fe-254452c00ce1",
+            "name": "Simulate Conversation",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6/simulate-conversation",
+                "method": "POST",
+                "options": {
+                    "timeout": 180000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "simulation_specification": {
+                        "simulated_user_config": {
+                            "prompt": {
+                                "prompt": "You are Klaus Mueller, an Austrian customer. Speak English. You want CAR insurance (Kfz) with Vollkasko coverage for your VW Golf. Facts to give when asked, one at a time: engine power 110 kW; vehicle value 22000 euros; first registered 2020; you drive about 15000 km per year; 7 claim-free years; you are the only driver, age 41; licensed 20 years; currently insured with Generali paying 620 euros per year; deductible 300 euros; postal code 1010 Vienna. Your name is Klaus Mueller and your mobile number is plus four three six six four one two three four five six seven. Give recording consent if asked. Answer concisely and stay on topic. Keep the conversation going and answer everything the agent asks until the agent gives you a case number; once you hear the case number, thank them briefly and end."
+                            },
+                            "language": "en",
+                            "first_message": "Hi, I would like car insurance please."
+                        }
+                    }
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Simulate Conversation",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
