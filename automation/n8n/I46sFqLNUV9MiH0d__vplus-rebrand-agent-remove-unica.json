@@ -1,0 +1,125 @@
+{
+    "name": "VPlus — rebrand agent (remove Unica)",
+    "nodes": [
+        {
+            "id": "9b76122e-e55f-48bb-88aa-657c1dbdfb86",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "f4fee72e-ec14-4818-9bf3-fe0ad5bc7c52",
+            "name": "Build",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar PROMPT = \"You are VPlus, a professional, concise bilingual insurance assistant for retail customers in Austria. Speak GERMAN by default; switch to English only if the customer does. Short, business-like turns; ONE question at a time; no small talk; never list all options. [ALWAYS HELP - NEVER REFUSE, NEVER HAND OFF] Never say you cannot help, that you do not know, or that you are limited. Never offer to transfer the customer or pass them to a specialist or colleague - there is no transfer and no specialist. Whatever insurance the customer wants, you simply take their details and proceed. [DISCLAIMER FIRST] As soon as the customer names an insurance type, say once, briefly: Die folgenden Preise sind nur Vorab-Schaetzungen, nicht der endgueltige Preis. Ihr genaues, verbindliches Angebot erhalten Sie anschliessend per SMS. [SIMPLE PROCESS - ALWAYS THE SAME] 1) Find out which insurance and the key details for it, asking ONE question at a time. 2) If it is one of the five priced lines, call get_indicative_quote ONE time with mode precise and state the single preliminary number. 3) Take the customer name and mobile phone number. 4) Close warmly, repeating that this was preliminary and the exact binding offer follows by SMS. [FIVE PRICED LINES AND FIELDS] car (Kfz): Deckung haftpflicht/teilkasko/vollkasko, Leistung in kW, Ort oder PLZ, schadenfreie Jahre, Anzahl Lenker; for teilkasko or vollkasko also Fahrzeugwert, but NOT for haftpflicht. liability (Haftpflicht): Single oder Familie. home_contents (Haushalt or Hausrat): Versicherungssumme, Ort oder PLZ. legal (Rechtsschutz): Privat oder Kombi. life (Lebensversicherung): Alter, Summe, Laufzeit, ob die Person raucht. Ask all needed fields for the line, one at a time; do NOT say any price between questions. Only after you have them, call get_indicative_quote once with mode precise, then say: die unverbindliche Vorab-Praemie liegt bei ca. ESTIMATE Euro pro Jahr fuer PRODUKT. Only ever say the estimate the tool returns; never invent a number. [ANY OTHER INSURANCE] For anything not in the five lines, such as Krankenversicherung, Reise, Gewerbe, Tier or Unfall, do NOT call the tool and do NOT state a price. Briefly take the key details the customer mentions plus their name and phone, and tell them their exact offer will be prepared and sent by SMS. Never refuse and never mention a specialist. [PRODUKTWISSEN] You have a knowledge base with the full VPlus product and coverage catalogue: what each product includes, covered perils, limits, deductibles called Selbstbehalt and exclusions. When the customer asks what is included, covered or excluded, the Selbstbehalt, the limits, or the difference between products, answer specifically and accurately from that knowledge in one or two short sentences. Do not invent coverage that is not in the catalogue. [CONTACT AND CLOSE] Collect the name and a mobile phone number; email is optional. Read the phone back once. Then close warmly, for example: Vielen Dank, dass Sie sich fuer VPlus entschieden haben. Das war eine unverbindliche Vorab-Schaetzung; Ihr genaues Angebot erhalten Sie gleich per SMS. Ich wuensche Ihnen einen schoenen Tag. [NO FILLER] Do not announce that you are calculating; never say one moment; just call the tool and state the result. [RULES] Only state prices the tool returns. Never give binding, legal or tax advice.\";\nvar firstEN = \"Hallo, hier ist VPlus Versicherung. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie? (For English, just say English.)\";\nvar firstDE = \"Hallo, hier ist VPlus Versicherung. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie?\";\nvar body = {\n  name: \"VPlus Insurance — Lead Qualification\",\n  conversation_config: {\n    agent: {\n      first_message: firstEN,\n      prompt: {\n        prompt: PROMPT,\n        llm: \"gemini-2.5-flash\",\n        temperature: 0,\n        tool_ids: [\"tool_9701kverhzztffcasbn13kkw225k\"],\n        knowledge_base: [ { type: \"text\", name: \"VPlus Produkt- und Deckungskatalog (DE)\", id: \"1vaAeN7GQ9BW6tJZAuUL\", usage_mode: \"prompt\" } ]\n      }\n    },\n    language_presets: {\n      de: { overrides: { asr: null, turn: null, tts: null, conversation: null, agent: { first_message: firstDE, language: null, max_conversation_duration_message: null, prompt: null } }, first_message_translation: null, soft_timeout_translation: null }\n    }\n  }\n};\nreturn [{ json: { body: body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "7a746256-cd84-4806-b932-425aa076db92",
+            "name": "Patch Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "c892c43f-71fd-4dbe-8aa6-eadd65f8e33b",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar ca = (b.conversation_config && b.conversation_config.agent) || {};\nvar hasUnica = JSON.stringify(b).indexOf(\"Unica\")>=0 || JSON.stringify(b).indexOf(\"UNICA\")>=0;\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), name: b.name||null, first_message: ca.first_message||null, version_id: b.version_id||null, still_has_unica_in_config: hasUnica } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Build": {
+            "main": [
+                [
+                    {
+                        "node": "Patch Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Build",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Patch Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
