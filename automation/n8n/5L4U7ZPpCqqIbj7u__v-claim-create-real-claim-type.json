@@ -1,0 +1,125 @@
+{
+    "name": "V+ — Claim create REAL (Claim type)",
+    "nodes": [
+        {
+            "id": "36cff0ce-5eca-4b54-83b8-5a782896a60e",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "70886bb9-d489-4cfc-8e0c-184ab21a8805",
+            "name": "Map Claim",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar b = { conversation_id:\"claim-manual-002\", policy_number:\"KFZ-99887766\", full_name:\"Maria Huber\", phone:\"06769988776\", email:\"maria.huber@example.at\", loss_type:\"Kfz Unfall\", date_of_loss:\"2026-06-20\", location:\"Wien, Ringstrasse\", description:\"Auffahrunfall an einer roten Ampel, Heckschaden am eigenen Fahrzeug.\", injuries:\"nein\", third_party:\"ja, ein weiteres Fahrzeug\", estimated_amount:\"3000 Euro\" };\nfunction v(k){ return (b[k]!==undefined && b[k]!==null) ? String(b[k]) : \"\"; }\nvar label = (\"Schaden \" + v(\"loss_type\") + \" \" + v(\"policy_number\") + \" \" + v(\"full_name\")).trim().slice(0,128);\nvar desc = [\"SCHADENMELDUNG (V+ Versicherung)\",\"Policy: \"+v(\"policy_number\"),\"Name: \"+v(\"full_name\"),\"Phone: \"+v(\"phone\"),\"Email: \"+v(\"email\"),\"Schadenart: \"+v(\"loss_type\"),\"Schadendatum: \"+v(\"date_of_loss\"),\"Ort: \"+v(\"location\"),\"Hergang: \"+v(\"description\"),\"Verletzte: \"+v(\"injuries\"),\"Dritte beteiligt: \"+v(\"third_party\"),\"Geschaetzter Betrag: \"+v(\"estimated_amount\")].join(\"\\n\");\nvar pega = { caseTypeID: \"MyOrg-CILMConv-Work-Claim\", content: { pyLabel: label, pyDescription: desc } };\nreturn [{ json: { pega: pega } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "73bc2ac4-9e26-4ccd-803c-aa7df1831eff",
+            "name": "Create Pega",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.pega) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Basic YWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "3001da21-3905-47f6-9102-d24da1f61b81",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar id = null; try { id = b.ID || b.pyID || null; } catch(e){}\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), case_id: id, raw:(id?null:b) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Map Claim",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map Claim": {
+            "main": [
+                [
+                    {
+                        "node": "Create Pega",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Pega": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
