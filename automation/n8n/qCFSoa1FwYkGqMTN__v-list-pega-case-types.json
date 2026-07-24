@@ -1,0 +1,92 @@
+{
+    "name": "V+ — list Pega case types",
+    "nodes": [
+        {
+            "id": "40def918-531f-4764-91cd-6fc08b54ba39",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "22e8ee0a-d8f8-4471-b9d1-8a2eba007852",
+            "name": "List Case Types",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes",
+                "method": "GET",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic YWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "18d47253-bee9-439d-b157-1265dbaa8731",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar types = (b.caseTypes||[]).map(function(c){ return { id: c.ID, name: c.name, canCreate: c.CanCreate }; });\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), types: types } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "List Case Types",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "List Case Types": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
