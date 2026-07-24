@@ -1,0 +1,86 @@
+{
+    "name": "V+ — Claim create test",
+    "nodes": [
+        {
+            "id": "d82f96db-a1cd-4dd7-afb3-6bf5e0994a31",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "84df98c5-cd66-4de6-8f02-78a315aae4c4",
+            "name": "Post Claim",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://ai-process.app.n8n.cloud/webhook/vplus-claim-create",
+                "method": "POST",
+                "options": {
+                    "timeout": 40000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ conversation_id:\"claim-test-001\", policy_number:\"KFZ-99887766\", full_name:\"Maria Huber\", phone:\"06769988776\", email:\"maria.huber@example.at\", loss_type:\"Kfz Unfall\", date_of_loss:\"2026-06-20\", location:\"Wien, Ringstrasse\", description:\"Auffahrunfall an einer roten Ampel, Heckschaden am eigenen Fahrzeug.\", injuries:\"nein\", third_party:\"ja, ein weiteres Fahrzeug\", estimated_amount:\"3000 Euro\" }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "specifyBody": "json"
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "6002091e-a4ab-43c8-b8df-d61b9714ea24",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nreturn [{ json: { status:(r.statusCode!==undefined?r.statusCode:null), response: b } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Post Claim",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Post Claim": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
