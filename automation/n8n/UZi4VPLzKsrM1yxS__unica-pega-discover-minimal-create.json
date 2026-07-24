@@ -1,0 +1,144 @@
+{
+    "name": "Unica — Pega discover + minimal create",
+    "nodes": [
+        {
+            "id": "d3964192-212b-4c95-a8f4-a20cd1e25480",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "6397bb59-1937-49a6-9604-88d53bcdd7b3",
+            "name": "Create Minimal",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ caseTypeID: \"MyOrg-CILM-Work-LeadIntake\", content: { ExternalConversationID: \"test-conv-001\" } }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Basic YWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "ae289f94-f853-4f85-b0de-4967a8696bfe",
+            "name": "Get CaseType Meta",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/casetypes/MyOrg-CILM-Work-LeadIntake",
+                "method": "GET",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic YWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "48e56e84-99b9-4625-8638-d71a84ea0e2e",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar meta = $json;\nvar create = $('Create Minimal').first().json;\nvar cbody = (create.body!==undefined? create.body : create);\nvar caseId = null; try { caseId = cbody.ID || cbody.pyID || null; } catch(e){}\nreturn [{ json: { create_status:(create.statusCode!==undefined?create.statusCode:null), case_id:caseId, create_body:cbody, meta_status:(meta.statusCode!==undefined?meta.statusCode:null), meta_body:(meta.body!==undefined?meta.body:meta) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Minimal",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Minimal": {
+            "main": [
+                [
+                    {
+                        "node": "Get CaseType Meta",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Get CaseType Meta": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
