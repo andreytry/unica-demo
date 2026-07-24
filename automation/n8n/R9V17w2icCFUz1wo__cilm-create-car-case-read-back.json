@@ -1,0 +1,105 @@
+{
+    "name": "CILM — Create Car case + read back",
+    "nodes": [
+        {
+            "id": "ed1bbc20-e4aa-4ebe-b957-f9b9f19485f9",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "ad2da419-c282-4305-83d7-d0db0f2d4678",
+            "name": "Create Car Insurance",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                    },
+                    "caseTypeID": "MyOrg-CILM-Work-CarInsurance"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "8d6ab1c9-2ac3-4fc5-ac85-f7fe0193e829",
+            "name": "Read Car Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "={{ \"https://2s8uoi5i.pegace.net/prweb/api/v1/cases/\" + encodeURIComponent($json.ID || $json.caseID || $json.pyID) }}",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Car Insurance",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Car Insurance": {
+            "main": [
+                [
+                    {
+                        "node": "Read Car Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
