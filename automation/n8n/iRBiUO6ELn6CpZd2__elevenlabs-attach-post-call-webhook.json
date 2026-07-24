@@ -1,0 +1,76 @@
+{
+    "name": "ElevenLabs Attach Post-Call Webhook",
+    "nodes": [
+        {
+            "id": "ac994135-e128-4706-b1f3-7376170b2e07",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "4a8e935a-115d-4b91-9015-78b3d747b275",
+            "name": "Attach Webhook",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                },
+                "jsonBody": {
+                    "platform_settings": {
+                        "workspace_overrides": {
+                            "webhooks": {
+                                "events": [
+                                    "transcript"
+                                ],
+                                "transcript_format": "json",
+                                "post_call_webhook_id": "3e032909254c4fb19a61953b6b34eff3"
+                            }
+                        }
+                    }
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Attach Webhook",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
