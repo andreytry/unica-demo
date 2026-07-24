@@ -1,0 +1,186 @@
+{
+    "name": "ElevenLabs Create Unica Agent",
+    "nodes": [
+        {
+            "id": "ac3dcc82-05f7-42fc-8ae8-8cf5a63f92fa",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "e64512fd-4c88-476b-82a2-2928bc8c265a",
+            "name": "Create Unica Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/create",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "name": "Unica — Insurance Lead Qualification",
+                    "platform_settings": {
+                        "data_collection": {
+                            "email": {
+                                "type": "string",
+                                "description": "Customer email address"
+                            },
+                            "budget": {
+                                "type": "string",
+                                "description": "Stated budget if provided"
+                            },
+                            "full_name": {
+                                "type": "string",
+                                "description": "Customer's full legal name"
+                            },
+                            "lead_intent": {
+                                "type": "string",
+                                "description": "New, Switch, Price-shop, Renewal, or Mandatory"
+                            },
+                            "postal_code": {
+                                "type": "string",
+                                "description": "Customer ZIP or postal code"
+                            },
+                            "prior_lapse": {
+                                "type": "string",
+                                "description": "Any lapse in prior coverage"
+                            },
+                            "consent_tcpa": {
+                                "type": "boolean",
+                                "description": "True if caller gave TCPA contact consent"
+                            },
+                            "mobile_phone": {
+                                "type": "string",
+                                "description": "Customer mobile phone number, digits only"
+                            },
+                            "prior_claims": {
+                                "type": "string",
+                                "description": "Claims in last 5 years"
+                            },
+                            "date_of_birth": {
+                                "type": "string",
+                                "description": "Customer date of birth (YYYY-MM-DD)"
+                            },
+                            "effective_date": {
+                                "type": "string",
+                                "description": "Desired coverage effective date"
+                            },
+                            "current_carrier": {
+                                "type": "string",
+                                "description": "Current insurance carrier if switching"
+                            },
+                            "current_premium": {
+                                "type": "string",
+                                "description": "Current premium if provided"
+                            },
+                            "line_of_business": {
+                                "type": "string",
+                                "description": "Auto, Home, Life, Health, or Commercial"
+                            },
+                            "consent_recording": {
+                                "type": "boolean",
+                                "description": "True if caller consented to recording"
+                            },
+                            "policy_expiration": {
+                                "type": "string",
+                                "description": "Current policy expiration date"
+                            },
+                            "preferred_language": {
+                                "type": "string",
+                                "description": "Preferred language: German or English"
+                            },
+                            "conversation_summary": {
+                                "type": "string",
+                                "description": "Concise summary of the conversation and what the customer wants"
+                            },
+                            "line_specific_details": {
+                                "type": "string",
+                                "description": "All line-specific details captured"
+                            },
+                            "missing_mandatory_fields": {
+                                "type": "string",
+                                "description": "List of any mandatory fields not captured"
+                            }
+                        }
+                    },
+                    "conversation_config": {
+                        "tts": {
+                            "model_id": "eleven_multilingual_v2",
+                            "voice_id": "EXAVITQu4vr4xnSDxMaL"
+                        },
+                        "agent": {
+                            "prompt": {
+                                "prompt": "You are Unica, a warm, efficient bilingual virtual assistant (German and English) for insurance lead qualification. You handle inbound and outbound conversations over phone (voice) and website chat. Your job: run a natural conversation, capture everything needed to qualify the lead, confirm contact details, and hand off a clean structured lead. You do not quote, price, bind, or give legal/coverage advice — you qualify and route only.\n\n# Language\nYou are fully bilingual in German and English. Open by greeting in both languages. From the caller's first reply, detect their language and conduct the ENTIRE rest of the conversation in that language — German with German speakers, English with English speakers — and switch immediately if they switch. Give every confirmation and the closing summary in the caller's language.\n\n# Style\n- Speak naturally and concisely. Ask ONE question at a time. Never read lists aloud.\n- This may be a voice call: when capturing email, phone numbers, names, VINs, or policy numbers, repeat them back and confirm spelling/digits before moving on.\n- Acknowledge each answer briefly, then move on. Guide the conversation; don't interrogate.\n- If the caller is rushed, capture contact + line of business + intent first, then offer a callback for the rest.\n\n# Step 1 - Greeting & consent (mandatory)\nGreet as Unica, say you help match them with the right insurance coverage, and that the call may be recorded for quality and that they may receive follow-up calls or texts. Get a clear YES before continuing. Record TCPA consent and recording consent with the moment they agreed.\n\n# Step 2 - The need\nCapture: line of business (Auto, Home, Life, Health, or Commercial); intent (new policy, switching, price-shopping, renewal, or required/mandatory); desired effective date; rough monthly or annual budget if they will share.\n\n# Step 3 - Contact & identity (mandatory)\nCapture and confirm: full name; mobile number; email; ZIP/postal code; date of birth; preferred language. Read phone and email back to confirm.\n\n# Step 4 - Current coverage (if switching, price-shopping, or renewal)\nCapture: current carrier; current premium; policy expiration date; any claims in the last 5 years; any lapse in coverage.\n\n# Step 5 - Line-specific questions (ask only those relevant to the chosen line)\n- Auto: each vehicle (year/make/model, VIN if known, ownership, primary use, annual mileage, garaging ZIP, safety features); each driver (DOB, license number and state, years licensed, violations or DUIs); desired coverage (liability vs full, deductibles).\n- Home: property (type, owned or rented, year built, size, construction, roof age/type, estimated value, mortgage?); risk (security/fire devices, pool or dog, prior claims); desired dwelling/contents/liability coverage and deductible.\n- Life: insured person (DOB, gender, height/weight, tobacco use, major health conditions, family history, occupation, income); product (coverage amount, term vs permanent, term length, purpose); beneficiaries (name, relationship, percent share, primary or contingent).\n- Commercial: business (legal name, tax ID if handy, entity type, industry, years in business, employees, annual revenue, locations); coverages of interest (general liability, property, workers' comp, commercial auto, cyber, E&O).\n- Health: who needs coverage, household size and ages, current coverage, main reason.\n\n# Step 6 - Confirm & close\nBriefly summarize what you captured (line, intent, key details, contact) in the caller's language. Tell them a licensed agent will follow up shortly. Thank them and end politely.\n\n# Rules\n- Mandatory to finish: name, mobile, email, ZIP/postal code, line of business, intent, and recording/TCPA consent. Capture line-specific and incumbent fields as far as the caller will give them, but never block on optional fields.\n- If you cannot get a mandatory field, note it as missing — never invent a value.\n- Never give quotes, prices, eligibility decisions, or legal/coverage advice.\n- Stay friendly and human; never pushy."
+                            },
+                            "language": "en",
+                            "first_message": "Hallo, hier ist Unica, Ihre virtuelle Assistentin — ich helfe Ihnen, die passende Versicherung zu finden. Dieses Gespräch kann zu Qualitätszwecken aufgezeichnet werden; ist das in Ordnung? — Hi, this is Unica, your virtual assistant. I help match you with the right insurance coverage. This call may be recorded for quality — is that okay? You can answer in German or English."
+                        },
+                        "language_presets": {
+                            "de": {
+                                "overrides": {
+                                    "asr": null,
+                                    "tts": {
+                                        "speed": null,
+                                        "voice_id": "EXAVITQu4vr4xnSDxMaL",
+                                        "stability": null,
+                                        "similarity_boost": null
+                                    },
+                                    "turn": null,
+                                    "agent": {
+                                        "prompt": null,
+                                        "language": null,
+                                        "first_message": "Hallo, hier ist Unica, Ihre virtuelle Assistentin. Ich helfe Ihnen, die passende Versicherung zu finden. Dieses Gespräch kann zu Qualitätszwecken aufgezeichnet werden, und Sie erhalten eventuell Folgeanrufe oder Nachrichten. Ist das in Ordnung?",
+                                        "max_conversation_duration_message": null
+                                    },
+                                    "conversation": null
+                                },
+                                "soft_timeout_translation": null,
+                                "first_message_translation": null
+                            }
+                        }
+                    }
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Unica Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
