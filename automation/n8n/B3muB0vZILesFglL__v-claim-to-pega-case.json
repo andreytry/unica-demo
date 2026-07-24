@@ -1,0 +1,95 @@
+{
+    "name": "V+ Claim to Pega Case",
+    "nodes": [
+        {
+            "id": "415484b9-d063-46f9-926c-545ba3ba8c08",
+            "name": "Claim Post-Call",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                0,
+                0
+            ],
+            "webhookId": "0285047e-adc9-475f-a3ca-1fa84ea3fe5f",
+            "parameters": {
+                "path": "v-claim-intake",
+                "options": {
+                },
+                "httpMethod": "POST",
+                "responseMode": "onReceived"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "2cf69427-eb8f-433e-a8f5-03229f32a4fc",
+            "name": "Map Claim to Case",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "jsCode": "const root = $input.first().json;\nconst body = root.body || root;\nconst dcr = (((body.data||{}).analysis||{}).data_collection_results) || {};\nconst g = (k) => { const f = dcr[k]; if(!f) return ''; const v=(f.value!==undefined?f.value:f); return (v===null||v===undefined)?'':v; };\nconst name=g('full_name'); const policy=g('policy_number'); const lob=String(g('line_of_business')).toLowerCase();\nconst phone=g('mobile_phone')||g('phone'); const email=g('email');\nconst dol=g('date_of_loss'); const desc=g('loss_description'); const loc=g('loss_location');\nconst tp=g('third_party_involved'); const inj=g('injuries'); const amt=g('estimated_amount');\nconst summary=g('conversation_summary');\nconst caseTypeID='__CLAIM_CASETYPE__';\nconst label='Schaden: '+(name||'Unbekannt')+' - '+(lob||'n/a')+(policy?' - Police '+policy:'');\nconst d=[];\nif(dol)d.push('Schadendatum '+dol);\nif(loc)d.push('Ort '+loc);\nif(desc)d.push(desc);\nd.push('Dritte beteiligt: '+(tp===''?'k.A.':tp));\nd.push('Verletzte: '+(inj===''?'k.A.':inj));\nif(amt)d.push('Schaetzung '+amt);\nif(phone)d.push('Tel '+phone);\nif(email)d.push('Email '+email);\nif(summary)d.push(summary);\nd.push('via V+ Schadenmeldung');\nconst description=d.join('; ');\nreturn [{ json: { caseTypeID, label, description, name, policy, lineOfBusiness: lob } }];",
+                "language": "javaScript"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "25d4364d-f5fd-427e-9f2e-54a9240b7aa3",
+            "name": "Create Pega Claim Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": "={{ { \"caseTypeID\": $json.caseTypeID, \"content\": { \"pyLabel\": $json.label, \"pyDescription\": $json.description } } }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Claim Post-Call": {
+            "main": [
+                [
+                    {
+                        "node": "Map Claim to Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Map Claim to Case": {
+            "main": [
+                [
+                    {
+                        "node": "Create Pega Claim Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
