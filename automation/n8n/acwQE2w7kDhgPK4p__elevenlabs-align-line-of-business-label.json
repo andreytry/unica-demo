@@ -1,0 +1,64 @@
+{
+    "name": "ElevenLabs — Align line_of_business label",
+    "nodes": [
+        {
+            "id": "2d88c606-5809-4a41-b84f-52fb20269d0f",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "451f9ff5-c3bb-42e7-a638-57822c244019",
+            "name": "PATCH Data Collection",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                },
+                "jsonBody": "{\n  \"platform_settings\": {\n    \"data_collection\": {\n      \"line_of_business\": {\n        \"type\": \"string\",\n        \"description\": \"One of the five Unica retail lines: car, liability, home_contents, legal, or life\"\n      }\n    }\n  }\n}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "PATCH Data Collection",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
