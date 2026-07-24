@@ -1,0 +1,101 @@
+{
+    "name": "ElevenLabs — Read Unica + Create Quote Tool",
+    "nodes": [
+        {
+            "id": "8284d78a-e248-4096-a36b-ef9b92537e5c",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "0c1c75b0-7c2e-47fd-b909-89316e89b58a",
+            "name": "GET Unica Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "eaef4a3f-22ef-4594-9eff-49d2bb68dc3f",
+            "name": "Create Quote Tool",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/tools",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": "{\n  \"tool_config\": {\n    \"type\": \"webhook\",\n    \"name\": \"get_indicative_quote\",\n    \"description\": \"Select the best Unica retail product and return an indicative annual price range. Call once the line_of_business and that line's mandatory fields are known.\",\n    \"response_timeout_secs\": 20,\n    \"api_schema\": {\n      \"url\": \"https://ai-process.app.n8n.cloud/webhook/unica-qualify\",\n      \"method\": \"POST\",\n      \"request_body_schema\": {\n        \"type\": \"object\",\n        \"required\": [\"line_of_business\"],\n        \"properties\": {\n          \"line_of_business\": { \"type\": \"string\", \"description\": \"One of: car, liability, home_contents, legal, life\" },\n          \"name\": { \"type\": \"string\", \"description\": \"Caller name\" },\n          \"email\": { \"type\": \"string\", \"description\": \"Caller email\" },\n          \"phone\": { \"type\": \"string\", \"description\": \"Caller phone\" },\n          \"region\": { \"type\": \"string\", \"description\": \"wien, graz, linz or land\" },\n          \"consent_recording\": { \"type\": \"boolean\", \"description\": \"Did the caller consent to recording\" },\n          \"coverage\": { \"type\": \"string\", \"description\": \"car only: haftpflicht, teilkasko or vollkasko\" },\n          \"driver_age\": { \"type\": \"number\", \"description\": \"car only: age of main driver\" },\n          \"power_kw\": { \"type\": \"number\", \"description\": \"car only: engine power in kW\" },\n          \"bonus_malus\": { \"type\": \"number\", \"description\": \"car only: 0.5 best to 1.8 worst\" },\n          \"household\": { \"type\": \"string\", \"description\": \"liability only: single or family\" },\n          \"contents_value\": { \"type\": \"number\", \"description\": \"home_contents only: sum insured in EUR\" },\n          \"sum_assured\": { \"type\": \"number\", \"description\": \"life only: cover amount in EUR\" },\n          \"term_years\": { \"type\": \"number\", \"description\": \"life only: term length in years\" },\n          \"tobacco\": { \"type\": \"boolean\", \"description\": \"life only: is the person a smoker\" }\n        }\n      }\n    }\n  }\n}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "GET Unica Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "GET Unica Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Create Quote Tool",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
