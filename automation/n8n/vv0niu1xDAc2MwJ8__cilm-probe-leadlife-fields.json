@@ -1,0 +1,95 @@
+{
+    "name": "CILM — probe LeadLife fields",
+    "nodes": [
+        {
+            "id": "dd1f5154-bab8-4811-854f-0c9378947bb2",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "214e0774-5c6f-43f2-b780-2cdfae760839",
+            "name": "Probe LeadLife Fields",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Intent": "new",
+                        "Purpose": "family protection",
+                        "TermYears": 20,
+                        "InsuredAge": 24,
+                        "CoverageSum": 500000,
+                        "ProductType": "Risikoleben",
+                        "LeadLifeName": "PROBE Tester",
+                        "InsuranceType": "life",
+                        "InsuredGender": "male",
+                        "InsuredHeight": 180,
+                        "InsuredWeight": 75,
+                        "SourceChannel": "probe",
+                        "CurrentInsurer": "none",
+                        "CurrentPremium": 0,
+                        "InsuredHobbies": "none",
+                        "PremiumFrequency": "annual",
+                        "InsuredOccupation": "engineer",
+                        "InsuredSmokerStatus": false,
+                        "InsuredHealthHistory": "none",
+                        "ZZZInvalidProbeField": "x",
+                        "ExternalConversationID": "probe-1"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadLife"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Probe LeadLife Fields",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
