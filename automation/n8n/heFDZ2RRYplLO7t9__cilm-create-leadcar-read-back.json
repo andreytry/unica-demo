@@ -1,0 +1,105 @@
+{
+    "name": "CILM — Create LeadCar + read back",
+    "nodes": [
+        {
+            "id": "3a2526fe-612c-4d84-8929-9a62b39a766b",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "c3acd2f7-3b91-48e1-91b4-49bad5f50a16",
+            "name": "Create Lead Car",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadCar"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "c467669c-6d49-45a3-8c07-e22ca12aa177",
+            "name": "Read Lead Car Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "={{ \"https://2s8uoi5i.pegace.net/prweb/api/v1/cases/\" + encodeURIComponent($json.ID) }}",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create Lead Car",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Lead Car": {
+            "main": [
+                [
+                    {
+                        "node": "Read Lead Car Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
