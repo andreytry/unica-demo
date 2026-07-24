@@ -1,0 +1,223 @@
+{
+    "name": "CILM — probe liability/home/legal fields",
+    "nodes": [
+        {
+            "id": "f73092c2-a96c-4194-858f-28d1f5fbd1ea",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "e09222c8-7cb7-487f-8a5b-0c4d13b8c9d0",
+            "name": "Probe Liability",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Intent": "new",
+                        "Purpose": "x",
+                        "ZZZJunk": "x",
+                        "Household": "family",
+                        "CoverageSum": 1000000,
+                        "IncludePets": true,
+                        "CoverageType": "standard",
+                        "SourceChannel": "probe",
+                        "CurrentInsurer": "none",
+                        "CurrentPremium": 0,
+                        "NumberOfPersons": 3,
+                        "NumberOfChildren": 1,
+                        "LeadLiabilityName": "Probe",
+                        "ExternalConversationID": "p",
+                        "IncludePropertyOwnerLiability": true
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadLiability"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "9dab41a9-b81f-4d43-b920-6a1cf423a2d4",
+            "name": "Probe Home",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Intent": "new",
+                        "ZZZJunk": "x",
+                        "PostalCode": "1010",
+                        "CoverageSum": 50000,
+                        "PropertySize": 80,
+                        "PropertyType": "apartment",
+                        "ContentsValue": 50000,
+                        "NumberOfRooms": 3,
+                        "SourceChannel": "probe",
+                        "CurrentInsurer": "none",
+                        "CurrentPremium": 0,
+                        "SecuritySystem": "alarm",
+                        "ConstructionType": "brick",
+                        "SecurityFeatures": "alarm",
+                        "GaragingPostalCode": "1010",
+                        "LeadHomeContentsName": "Probe",
+                        "ExternalConversationID": "p"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadHomeContents"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "73958906-d53d-43be-8bf5-2ea491c619e2",
+            "name": "Probe Legal",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": {
+                    "content": {
+                        "Intent": "new",
+                        "Purpose": "x",
+                        "ZZZJunk": "x",
+                        "Household": "family",
+                        "CoverageSum": 100000,
+                        "CoverageType": "kombi",
+                        "CoverageScope": "private",
+                        "LeadLegalName": "Probe",
+                        "SourceChannel": "probe",
+                        "CurrentInsurer": "none",
+                        "CurrentPremium": 0,
+                        "IncludePrivate": true,
+                        "IncludeTraffic": true,
+                        "IncludeEmployment": true,
+                        "ExternalConversationID": "p"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadLegal"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Probe Liability",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Probe Home": {
+            "main": [
+                [
+                    {
+                        "node": "Probe Legal",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Probe Liability": {
+            "main": [
+                [
+                    {
+                        "node": "Probe Home",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
