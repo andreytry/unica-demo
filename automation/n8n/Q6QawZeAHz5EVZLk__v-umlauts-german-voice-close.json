@@ -1,0 +1,246 @@
+{
+    "name": "V+ — umlauts + German voice + close",
+    "nodes": [
+        {
+            "id": "3bddcc1f-7af8-4e15-970d-85133b2793c3",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "d5e8c48d-9986-4ece-aab5-2b86d6aeb0a1",
+            "name": "Prep KB",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar T = \"[V+ VERSICHERUNG PRODUKT- UND DECKUNGSKATALOG - Demo, Beispielwerte, kein verbindliches Bedingungswerk] [KFZ ALLGEMEIN] Drei Varianten: Haftpflicht, Komfort mit Teilkasko, Premium mit Vollkasko. Zahlung jährlich oder monatlich. Kündigung zum Hauptfälligkeitstag mit einem Monat Frist. [CAR-LIAB-STD V+ Versicherung Kfz Haftpflicht] Gesetzlich verpflichtend. Deckt Personen-, Sach- und Vermögensschäden, die Sie mit dem Fahrzeug Dritten zufügen, pauschal bis 15 Mio Euro. Inkludiert: Deckung im gesamten EWR, Grüne Karte, Abwicklung der motorbezogenen Versicherungssteuer. Optional zubuchbar: Lenkerunfall, Pannenhilfe. Nicht gedeckt: Schäden am eigenen Fahrzeug, Vorsatz, nicht genehmigte Rennen. Selbstbehalt: keiner. [CAR-TK-COMFORT V+ Versicherung Kfz Komfort, Haftpflicht plus Teilkasko] Enthält die volle Haftpflicht plus Teilkasko. Teilkasko deckt: Diebstahl und Raub, Brand und Explosion, Sturm, Hagel, Blitzschlag, Überschwemmung, Glasbruch, Schäden durch Marderbiss inklusive Folgeschäden, Zusammenstoß mit Wild. Neupreisentschädigung in den ersten 12 Monaten. Selbstbehalt: 150 bis 300 Euro je Schaden. Nicht gedeckt: selbst verschuldete Unfallschäden am eigenen Auto, Vandalismus. [CAR-VK-PREMIUM V+ Versicherung Kfz Premium, Haftpflicht plus Vollkasko] Enthält Haftpflicht und die gesamte Teilkasko plus Vollkasko. Zusätzlich gedeckt: selbst verschuldete Unfallschäden am eigenen Fahrzeug, Vandalismus und mutwillige Beschädigung, Schäden durch unbekannte Dritte. Neupreisentschädigung bis 24 Monate, Auslandsschadenschutz, Mietwagen- und Pannen-Assistance rund um die Uhr, Schutzbrief für Europa. Selbstbehalt frei wählbar 300 oder 500 Euro. Optional: Bonusschutz, ein Schaden pro Jahr ohne Rückstufung, sowie GAP-Deckung bei Leasing. [HAFTPFLICHT ALLGEMEIN] Die Privathaftpflicht schützt vor berechtigten Forderungen Dritter und wehrt unberechtigte Forderungen ab. [LIAB-SINGLE V+ Versicherung Privathaftpflicht Single] Für Einzelpersonen. Deckt Personen-, Sach- und Vermögensschäden gegenüber Dritten bis 3 Mio Euro. Inkludiert: Schlüsselverlust auch für fremde Schlüssel, Mietsachschäden an gemieteten Räumen, Gefälligkeitsschäden, Halterhaftung für Kleintiere, weltweiter Schutz bis 12 Monate Aufenthalt. Nicht gedeckt: Vorsatz, eigene Sachen, Schäden mit Kfz oder Boot, berufliche Tätigkeit. [LIAB-FAMILY V+ Versicherung Privathaftpflicht Familie] Gilt für den gesamten Haushalt inklusive Partner und alle Kinder. Deckungssumme bis 5 Mio Euro. Zusätzlich: deliktunfähige Kinder mitversichert, Au-pair und Haushaltshilfe, Hundehalterhaftung optional zubuchbar. Sonst Leistungen wie Single. [HAUSHALT ALLGEMEIN] Die Haushaltsversicherung ersetzt den Hausrat zum Neuwert. Die Versicherungssumme soll dem gesamten Wert des Hausrats entsprechen, sonst droht Unterversicherung. [HC-STD V+ Versicherung Haushalt Standard] Gedeckte Gefahren: Feuer also Brand, Blitz und Explosion, Leitungswasser, Sturm und Hagel, Einbruchdiebstahl und Raub, Vandalismus nach Einbruch. Inkludiert: Aufräumkosten, begrenzte Hotelkosten nach Totalschaden, Glasbruch optional. Selbstbehalt typisch 0 bis 150 Euro. Nicht gedeckt: einfacher Diebstahl ohne Einbruch, Elementarschäden wie Überschwemmung. [HC-PLUS V+ Versicherung Haushalt Plus] Alles aus Standard plus: Elementarschäden wie Überschwemmung, Hochwasser, Erdbeben, Lawinen und Schneedruck, Fahrraddiebstahl auch außer Haus, erweiterte Glasbruchdeckung, Überspannungsschäden an Elektrogeräten durch Blitz, grobe Fahrlässigkeit mitversichert, höhere Limits für Wertsachen und Hotelkosten. Empfohlen in Hochwasserzonen oder bei hochwertigem Inventar. [RECHTSSCHUTZ ALLGEMEIN] Rechtsschutz übernimmt Anwalts-, Gerichts-, Sachverständigen- und gegnerische Kosten im versicherten Bereich. Wartezeit in der Regel 3 Monate außer bei Unfall. Freie Anwaltswahl. [LEGAL-PRIVATE V+ Versicherung Rechtsschutz Privat] Bausteine: Schadenersatz-Rechtsschutz, Arbeitsgerichts-Rechtsschutz, Wohn- und Miet-Rechtsschutz, Sozialversicherungs-Rechtsschutz, Steuer-Rechtsschutz, Straf- und Verwaltungs-Rechtsschutz im Privatbereich. Deckungssumme bis 300000 Euro je Fall. Nicht gedeckt: vorsätzliche Straftaten, teils Bau und Kauf von Immobilien. [LEGAL-COMBO V+ Versicherung Rechtsschutz Kombi] Alles aus Privat plus Verkehrs-Rechtsschutz als Lenker, Halter, Insasse, Fußgänger und Radfahrer, sowie Berufs-Rechtsschutz für Unselbstständige. Inkludiert Führerschein-Rechtsschutz und Fahrzeug-Vertrags-Rechtsschutz. Empfohlen für Vielfahrer. [LEBEN ALLGEMEIN] Zwei Konzepte: reine Risikoabsicherung oder Vorsorge mit Sparanteil. Gesundheitsfragen oder ärztliche Untersuchung je nach Summe. Bezugsberechtigte frei wählbar. [LIFE-TERM-STD V+ Versicherung Risikoleben] Reine Ablebensversicherung ohne Sparanteil. Bei Tod der versicherten Person während der Laufzeit wird die vereinbarte Versicherungssumme steuergünstig an die Begünstigten ausbezahlt. Inkludiert: Nachversicherungsgarantie bei Heirat oder Geburt ohne neue Gesundheitsprüfung, optional vorgezogene Leistung bei schwerer Krankheit. Karenz bei Suizid in den ersten Jahren. Günstige Prämie, ideal zur Absicherung von Kredit oder Familie. [LIFE-VORSORGE V+ Versicherung Leben Vorsorge] Er- und Ablebensversicherung mit Sparanteil. Bei Ableben wird die Summe ausbezahlt, bei Erleben die garantierte Ablaufleistung plus Gewinnbeteiligung. Inkludiert: garantierter Rechnungszins, Rückkaufswert ab dem 2. Jahr, Beitragspause und Teilauszahlung möglich, steuerliche Begünstigung. Geeignet zum Vermögensaufbau und zur Pensionsvorsorge. [ALLGEMEIN] Alle Preise im Gespräch sind Vorab-Schätzungen und kein verbindliches Angebot. Deckungssummen, Selbstbehalte und Bausteine sind im finalen Angebot individuell anpassbar.\";\nreturn [{ json: { name: \"V+ Versicherung Produkt- und Deckungskatalog (DE)\", text: T } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "2d63e99e-8052-4666-8479-ea69df23dd6c",
+            "name": "Create KB",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/knowledge-base/text",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify({ name: $json.name, text: $json.text }) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "d8051aa9-a7d7-408f-be1f-87594b692202",
+            "name": "Build Agent",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar newId = b.id || null;\nvar PROMPT = \"You are V+ Versicherung, a professional, concise bilingual insurance assistant for retail customers in Austria. Speak GERMAN by default; switch to English only if the customer does. Use correct German spelling with umlauts ä ö ü and ß. Short, business-like turns; ONE question at a time; no small talk; never list all options. [ALWAYS HELP - NEVER REFUSE, NEVER HAND OFF] Never say you cannot help or that you are limited. Never transfer the customer or mention a specialist - there is none. Whatever insurance they want, take the details and proceed. [ONLY CRITICAL PRICE FACTORS] Ask ONLY the few fields that actually drive the price for the chosen line; do not ask for anything else on the call. The rest is collected afterwards via the link. The price-driving fields are: Kfz: Deckung (Haftpflicht/Teilkasko/Vollkasko), Leistung in kW, Ort oder PLZ, schadenfreie Jahre; bei Teilkasko oder Vollkasko zusätzlich der Fahrzeugwert. Haftpflicht: Single oder Familie. Haushalt: Versicherungssumme und Ort oder PLZ. Rechtsschutz: Privat oder Kombi. Lebensversicherung: Alter, Summe, Laufzeit, Raucher ja oder nein. [DISCLAIMER FIRST] As soon as the customer names an insurance type, say once, briefly: Die folgenden Preise sind nur Vorab-Schätzungen, nicht der endgültige Preis. [PROCESS] Ask the critical fields one at a time, then call get_indicative_quote once with mode precise and state: die unverbindliche Vorab-Prämie liegt bei ungefähr ESTIMATE Euro pro Jahr für PRODUKT. Only ever say the estimate the tool returns; never invent a number. For any line that is not one of the five, do not call the tool and do not state a price; just take the name and phone and tell them their offer will follow. [CONTACT AND DELIVERY] Then collect the name and a mobile phone number and read the phone back once. Then ask: Möchten Sie Ihr Angebot per SMS oder per E-Mail erhalten? If SMS, use the phone number. If E-Mail, ask for and confirm the e-mail address. [CLOSE] Close warmly, for example: Vielen Dank, dass Sie sich für V+ Versicherung entschieden haben. Den Link mit Ihrem Angebot und den restlichen Angaben erhalten Sie in Kürze per SMS, oder per E-Mail, falls gewünscht. Ich wünsche Ihnen einen schönen Tag. [PRODUKTWISSEN] You have a knowledge base with the full V+ Versicherung product and coverage catalogue. When the customer asks what is included, covered or excluded, the Selbstbehalt, the limits, or the difference between products, answer specifically and accurately from that knowledge in one or two short sentences. Do not invent coverage. [NO FILLER] Do not announce that you are calculating; just call the tool and state the result. [RULES] Only state prices the tool returns. Never give binding, legal or tax advice.\";\nvar firstEN = \"Hallo, hier ist V+ Versicherung. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie? (For English, just say English.)\";\nvar firstDE = \"Hallo, hier ist V+ Versicherung. Ich helfe Ihnen, die passende Versicherung zu finden. Welche Versicherung möchten Sie?\";\nvar body = {\n  name: \"V+ Versicherung — Lead Qualification\",\n  conversation_config: {\n    tts: { voice_id: \"BtJhEZecBTSpKQ8EHRCJ\" },\n    agent: {\n      first_message: firstEN,\n      prompt: { prompt: PROMPT, llm: \"gemini-2.5-flash\", temperature: 0, tool_ids: [\"tool_9701kverhzztffcasbn13kkw225k\"], knowledge_base: [ { type: \"text\", name: \"V+ Versicherung Produkt- und Deckungskatalog (DE)\", id: newId, usage_mode: \"prompt\" } ] }\n    },\n    language_presets: { de: { overrides: { asr: null, turn: null, tts: null, conversation: null, agent: { first_message: firstDE, language: null, max_conversation_duration_message: null, prompt: null } }, first_message_translation: null, soft_timeout_translation: null } }\n  }\n};\nreturn [{ json: { newId: newId, body: body } }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "50340b48-f011-4070-a2ca-bffbf7fe3ba7",
+            "name": "Patch Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/agent_3701kvdy0a45eywvg4yn9kw8pqv6",
+                "method": "PATCH",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.body) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "5dea21d0-a5aa-4474-a77d-b8fb900c56fc",
+            "name": "Delete Old KB",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                1120,
+                0
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/knowledge-base/LxONzOVsAAnLsp3vLf25",
+                "method": "DELETE",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "cc196700-9b26-4c83-9b7e-033125b5fe0e",
+            "name": "Out",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                1344,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar del = $json;\nvar agent = $('Patch Agent').first().json; var ab = (agent.body!==undefined? agent.body: agent);\nvar voice=\"\"; try{ voice = ab.conversation_config.tts.voice_id; }catch(e){}\nvar first=\"\"; try{ first = ab.conversation_config.agent.first_message; }catch(e){}\nvar newId = $('Build Agent').first().json.newId;\nreturn [{ json: { agent_status:(agent.statusCode!==undefined?agent.statusCode:null), voice_id: voice, first_message_has_umlaut: (first.indexOf(\"möchten\")>=0), new_kb_id: newId, del_old_status:(del.statusCode!==undefined?del.statusCode:null) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Prep KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prep KB": {
+            "main": [
+                [
+                    {
+                        "node": "Create KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create KB": {
+            "main": [
+                [
+                    {
+                        "node": "Build Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Patch Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Patch Agent": {
+            "main": [
+                [
+                    {
+                        "node": "Delete Old KB",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Delete Old KB": {
+            "main": [
+                [
+                    {
+                        "node": "Out",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
