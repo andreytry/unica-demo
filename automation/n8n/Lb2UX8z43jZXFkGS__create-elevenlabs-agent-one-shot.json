@@ -1,0 +1,65 @@
+{
+    "name": "Create ElevenLabs Agent (one-shot)",
+    "nodes": [
+        {
+            "id": "6f5acc6a-acdd-4a0d-b063-04c0346bad29",
+            "name": "Run",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                240,
+                300
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "a4b715db-e0c5-432a-b4e2-5377c9ae2264",
+            "name": "Create Agent",
+            "type": "n8n-nodes-base.httpRequest",
+            "onError": "continueRegularOutput",
+            "position": [
+                480,
+                300
+            ],
+            "parameters": {
+                "url": "https://api.elevenlabs.io/v1/convai/agents/create",
+                "method": "POST",
+                "jsonBody": "{\"name\":\"Ocean Breeze Studios — Concierge\",\"conversation_config\":{\"agent\":{\"first_message\":\"¡Hola! Bienvenido a Ocean Breeze Studios. ¿En qué puedo ayudarte — habitaciones, precios, ubicación o una reserva?\",\"language\":\"es\",\"prompt\":{\"prompt\":\"You are the 24/7 virtual concierge for Ocean Breeze Studios, a boutique studio hotel in the Zona Colonial of Santo Domingo, Dominican Republic. Detect the guest language from what they write or say and ALWAYS reply in that same language: Spanish, English or French. Default to Spanish if unclear. Be warm, concise and helpful, like an excellent front-desk host. FACTS (authoritative, never invent beyond these): Address: Calle Palo Hincado 202, esq. Calle Canela, Zona Colonial, Santo Domingo. Reception open 24/7; flexible check-in, late check-in on request. Rooms per night in USD: Basic Studio 39, Deluxe Studio 45, Luxe Studio 49, up to 2 guests. Every studio has a private kitchen, private bathroom, air conditioning, free WiFi and cable TV; some have balconies; there is a rooftop terrace. Parking: none on-site, paid private parking about 150m away. Location: about 100m from Parque Independencia and the El Conde pedestrian street; near Parque Colon and Plaza Espana; about 25 minutes by car to Las Americas airport (SDQ). Contact: WhatsApp and phone (809) 685-0193, email oceanbreezestudios@gmail.com. WHAT YOU DO: answer any guest question from these facts (rooms, prices, parking, wifi, kitchen, location, check-in, airport). Always encourage booking DIRECT and never refer guests to Booking.com or Expedia; mention that booking direct gives a 10 percent discount. If you do not know something, offer the front desk or WhatsApp. Keep answers short and natural.\",\"llm\":\"gpt-4o-mini\"}},\"tts\":{\"voice_id\":\"21m00Tcm4TlvDq8ikWAM\"},\"language_presets\":{\"en\":{\"overrides\":{\"agent\":{\"first_message\":\"Hi! Welcome to Ocean Breeze Studios. How can I help — rooms, prices, location, or a booking?\"}}},\"fr\":{\"overrides\":{\"agent\":{\"first_message\":\"Bonjour ! Bienvenue à Ocean Breeze Studios. Comment puis-je vous aider — chambres, tarifs, ou une réservation ?\"}}}}},\"platform_settings\":{\"auth\":{\"allowlist\":[{\"hostname\":\"andreytry.github.io\"}]}},\"tags\":[\"hotel\",\"ocean-breeze\"]}",
+                "sendBody": true,
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "xi-api-key",
+                            "value": "<ELEVENLABS_KEY>"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Run": {
+            "main": [
+                [
+                    {
+                        "node": "Create Agent",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
