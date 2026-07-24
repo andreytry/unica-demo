@@ -1,0 +1,158 @@
+{
+    "name": "V+ — Claim create (Pega DX)",
+    "nodes": [
+        {
+            "id": "eb21e7dd-db70-47d6-be63-312784bb5b56",
+            "name": "Claim Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "position": [
+                0,
+                0
+            ],
+            "webhookId": "3f642846-543d-4e82-837e-85a7b56e43c2",
+            "parameters": {
+                "path": "vplus-claim-create",
+                "options": {
+                },
+                "httpMethod": "POST",
+                "responseMode": "responseNode"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "7d200f6b-6562-4c38-aec0-8d8e0985e6f6",
+            "name": "Map Claim",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "var b = $json.body || $json;\nfunction v(k){ return (b[k]!==undefined && b[k]!==null) ? String(b[k]) : \"\"; }\nvar label = (\"Schaden \" + v(\"loss_type\") + \" \" + v(\"policy_number\") + \" \" + v(\"full_name\")).trim().slice(0,128);\nvar desc = [\"SCHADENMELDUNG (V+ Versicherung)\",\"Policy: \"+v(\"policy_number\"),\"Name: \"+v(\"full_name\"),\"Phone: \"+v(\"phone\"),\"Email: \"+v(\"email\"),\"Schadenart: \"+v(\"loss_type\"),\"Schadendatum: \"+v(\"date_of_loss\"),\"Ort: \"+v(\"location\"),\"Hergang: \"+v(\"description\"),\"Verletzte: \"+v(\"injuries\"),\"Dritte beteiligt: \"+v(\"third_party\"),\"Geschaetzter Betrag: \"+v(\"estimated_amount\")].join(\"\\n\");\nvar pega = { caseTypeID: \"MyOrg-CILMConv-Work-Claim\", content: { pyLabel: label, pyDescription: desc } };\nreturn [{ json: { pega: pega } }];"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "e7a9b8a6-f2be-4e08-a5fa-77ba15696e89",
+            "name": "Create Pega",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true,
+                            "fullResponse": true
+                        }
+                    }
+                },
+                "jsonBody": "={{ JSON.stringify($json.pega) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Content-Type",
+                            "value": "application/json"
+                        },
+                        {
+                            "name": "Authorization",
+                            "value": "Basic YWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "b27c8a34-02d7-4147-bbd0-6b894cd0e172",
+            "name": "Build Resp",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar r = $json; var b = (r.body!==undefined? r.body : r);\nvar id = null; try { id = b.ID || b.pyID || null; } catch(e){}\nvar ok = (r.statusCode>=200 && r.statusCode<300 && id);\nvar out = ok ? { ok:true, case_id:id, case_number:id, message:\"Schaden erfasst\" } : { ok:false, case_id:null, error:(\"Pega \"+(r.statusCode!==undefined?r.statusCode:\"?\")), detail:b };\nreturn [{ json: out }];\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "79c71b0f-03d3-473c-ad4f-f9734b165865",
+            "name": "Respond",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "position": [
+                896,
+                0
+            ],
+            "parameters": {
+                "options": {
+                },
+                "respondWith": "json",
+                "responseBody": "={{ JSON.stringify($json) }}"
+            },
+            "typeVersion": 1
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Map Claim": {
+            "main": [
+                [
+                    {
+                        "node": "Create Pega",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build Resp": {
+            "main": [
+                [
+                    {
+                        "node": "Respond",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Pega": {
+            "main": [
+                [
+                    {
+                        "node": "Build Resp",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Claim Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Map Claim",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
