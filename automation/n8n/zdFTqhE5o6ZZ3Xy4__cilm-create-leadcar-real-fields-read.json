@@ -1,0 +1,127 @@
+{
+    "name": "CILM — Create LeadCar real fields + read",
+    "nodes": [
+        {
+            "id": "e724547f-30bc-4cc3-8765-575a474d5698",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "4922c026-7b34-4b96-b560-19bd79f169e0",
+            "name": "Create LeadCar (real fields)",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "url": "https://2s8uoi5i.pegace.net/prweb/api/v1/cases",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": {
+                    "content": {
+                        "HSN": "0603",
+                        "TSN": "BGU",
+                        "Deductibles": 300,
+                        "LeadCarName": "Maximilian Huber — VW Golf",
+                        "VehicleMake": "Volkswagen",
+                        "LicenseYears": 16,
+                        "VehicleModel": "Golf",
+                        "VehicleValue": 22000,
+                        "SourceChannel": "ElevenLabs Voice",
+                        "ClaimfreeYears": 5,
+                        "CurrentInsurer": "Generali",
+                        "CurrentPremium": 540,
+                        "VehicleVariant": "1.5 TSI",
+                        "NumberOfDrivers": 1,
+                        "AnnualKilometers": 12000,
+                        "DesiredStartDate": "2026-07-01",
+                        "YoungestDriverAge": 34,
+                        "GaragingPostalCode": "1010",
+                        "NoclaimsProtection": true,
+                        "AccidentsInLast3Years": 0,
+                        "FirstRegistrationYear": 2019,
+                        "ExternalConversationID": "el_conv_8842"
+                    },
+                    "caseTypeID": "MyOrg-CILMConv-Work-LeadCar"
+                },
+                "sendBody": true,
+                "contentType": "json",
+                "sendHeaders": true,
+                "specifyBody": "json",
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "b844a920-efc0-4ed4-9cb4-6b1073753911",
+            "name": "Read LeadCar Case",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "={{ \"https://2s8uoi5i.pegace.net/prweb/api/v1/cases/\" + encodeURIComponent($json.ID) }}",
+                "method": "GET",
+                "options": {
+                },
+                "sendHeaders": true,
+                "specifyHeaders": "keypair",
+                "headerParameters": {
+                    "parameters": [
+                        {
+                            "name": "Authorization",
+                            "value": "Basic QWRtaW5AY2lsbS5jb206S29rb3MxMjMh"
+                        }
+                    ]
+                }
+            },
+            "typeVersion": 4.4
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Create LeadCar (real fields)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create LeadCar (real fields)": {
+            "main": [
+                [
+                    {
+                        "node": "Read LeadCar Case",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
