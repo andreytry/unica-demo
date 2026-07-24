@@ -1,0 +1,104 @@
+{
+    "name": "Unica — pricing realism matrix",
+    "nodes": [
+        {
+            "id": "f4ca5a53-e443-44b6-9853-f34ab584fc29",
+            "name": "Start",
+            "type": "n8n-nodes-base.manualTrigger",
+            "position": [
+                0,
+                0
+            ],
+            "parameters": {
+            },
+            "typeVersion": 1
+        },
+        {
+            "id": "4af6c6b8-370e-4e0e-b98d-29927602e3fe",
+            "name": "Build",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                224,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nvar c = [\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"haftpflicht\",driver_age:40,power_kw:90,region:\"Wien\",claims_free_years:5,num_drivers:1},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"haftpflicht\",driver_age:25,power_kw:66,region:\"Graz\",claims_free_years:2,num_drivers:1},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"haftpflicht\",driver_age:70,power_kw:60,region:\"Klagenfurt\",claims_free_years:30,num_drivers:1},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"teilkasko\",driver_age:40,power_kw:110,region:\"Wien\",vehicle_value:20000,claims_free_years:5,num_drivers:1},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"teilkasko\",driver_age:30,power_kw:85,region:\"Linz\",vehicle_value:15000,claims_free_years:8,num_drivers:1},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"vollkasko\",driver_age:42,power_kw:110,region:\"Wien\",vehicle_value:25000,claims_free_years:8,num_drivers:1},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"vollkasko\",driver_age:23,power_kw:150,region:\"Wien\",vehicle_value:40000,claims_free_years:0,num_drivers:1},\n {line_of_business:\"Kfz\",mode:\"precise\",coverage:\"vollkasko\",driver_age:50,power_kw:100,region:\"Salzburg\",vehicle_value:30000,claims_free_years:15,num_drivers:2},\n {line_of_business:\"Haftpflicht\",mode:\"precise\",household:\"single\",region:\"Wien\"},\n {line_of_business:\"Haftpflicht\",mode:\"precise\",household:\"familie\",region:\"Graz\"},\n {line_of_business:\"Haushalt\",mode:\"precise\",coverage:\"standard\",contents_value:30000,region:\"Wien\"},\n {line_of_business:\"Haushalt\",mode:\"precise\",coverage:\"plus\",contents_value:50000,region:\"Wien\",security:\"alarm\"},\n {line_of_business:\"Haushalt\",mode:\"precise\",coverage:\"standard\",contents_value:80000,region:\"Graz\"},\n {line_of_business:\"Rechtsschutz\",mode:\"precise\",coverage:\"privat\"},\n {line_of_business:\"Rechtsschutz\",mode:\"precise\",coverage:\"kombi\"},\n {line_of_business:\"Lebensversicherung\",mode:\"precise\",coverage:\"risiko\",age:35,sum_assured:200000,term_years:25,tobacco:false},\n {line_of_business:\"Lebensversicherung\",mode:\"precise\",coverage:\"risiko\",age:55,sum_assured:150000,term_years:15,tobacco:true},\n {line_of_business:\"Lebensversicherung\",mode:\"precise\",coverage:\"risiko\",age:45,sum_assured:300000,term_years:20,tobacco:false},\n {line_of_business:\"Lebensversicherung\",mode:\"precise\",coverage:\"vorsorge\",age:40,sum_assured:100000,term_years:20,tobacco:false}\n];\nreturn c.map(function(x){ return { json: x }; });\n"
+            },
+            "typeVersion": 2
+        },
+        {
+            "id": "c9278858-d6e4-49b2-814e-2b23eccea4d6",
+            "name": "Price",
+            "type": "n8n-nodes-base.httpRequest",
+            "position": [
+                448,
+                0
+            ],
+            "parameters": {
+                "url": "https://ai-process.app.n8n.cloud/webhook/unica-quote-v3",
+                "method": "POST",
+                "options": {
+                },
+                "jsonBody": "={{ JSON.stringify($json) }}",
+                "sendBody": true,
+                "contentType": "json",
+                "specifyBody": "json"
+            },
+            "typeVersion": 4.4
+        },
+        {
+            "id": "9d35137f-421c-480a-a032-d70e48930dbf",
+            "name": "Collect",
+            "type": "n8n-nodes-base.code",
+            "position": [
+                672,
+                0
+            ],
+            "parameters": {
+                "mode": "runOnceForAllItems",
+                "jsCode": "\nreturn [{ json: { runs: $input.all().map(function(i){ var j=i.json; return { line:j.line, status:j.status, product:(j.recommended_product?j.recommended_product.ProductName:null), estimate:j.estimate, low:(j.indicative_range?j.indicative_range.low:null), high:(j.indicative_range?j.indicative_range.high:null), rationale:j.rationale }; }) } }];\n"
+            },
+            "typeVersion": 2
+        }
+    ],
+    "settings": {
+        "availableInMCP": true,
+        "executionOrder": "v1"
+    },
+    "connections": {
+        "Build": {
+            "main": [
+                [
+                    {
+                        "node": "Price",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Price": {
+            "main": [
+                [
+                    {
+                        "node": "Collect",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Start": {
+            "main": [
+                [
+                    {
+                        "node": "Build",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}
